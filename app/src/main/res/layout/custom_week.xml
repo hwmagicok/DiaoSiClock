@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id = "@+id/alarm_repeat_week"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="@dimen/marginToLeft"
+    android:layout_marginBottom="5dp">
+
+    <TextView
+        android:id = "@+id/monday_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="一 "
+        android:textSize="@dimen/contextTextSize"
+        android:textColor="@android:color/darker_gray"/>
+
+    <TextView
+        android:id = "@+id/tuesday_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="二 "
+        android:textSize="@dimen/contextTextSize"
+        android:textColor="@android:color/darker_gray"/>
+
+    <TextView
+        android:id = "@+id/wednesday_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="三 "
+        android:textSize="@dimen/contextTextSize"
+        android:textColor="@android:color/darker_gray"/>
+
+    <TextView
+        android:id = "@+id/thursday_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="四 "
+        android:textSize="@dimen/contextTextSize"
+        android:textColor="@android:color/darker_gray"/>
+
+    <TextView
+        android:id = "@+id/friday_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="五 "
+        android:textSize="@dimen/contextTextSize"
+        android:textColor="@android:color/darker_gray"/>
+
+    <TextView
+        android:id = "@+id/saturday_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="六 "
+        android:textSize="@dimen/contextTextSize"
+        android:textColor="@android:color/darker_gray"/>
+
+    <TextView
+        android:id = "@+id/sunday_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="日"
+        android:textSize="@dimen/contextTextSize"
+        android:textColor="@android:color/darker_gray"/>
+</LinearLayout>

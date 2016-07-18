@@ -1,4 +1,4 @@
-package com.hw.weather1.model;
+package com.hw.diaosiclock.model;
 
 /**
  * Created by hw on 2016/2/15.

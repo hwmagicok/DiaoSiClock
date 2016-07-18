@@ -1,4 +1,4 @@
-package com.hw.weather1.activity;
+package com.hw.diaosiclock.activity;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -17,11 +17,11 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.hw.weather1.R;
-import com.hw.weather1.model.WeatherDataDB;
-import com.hw.weather1.util.HttpCallbackListener;
-import com.hw.weather1.util.HttpUtil;
-import com.hw.weather1.util.LocalUtil;
+import com.hw.diaosiclock.R;
+import com.hw.diaosiclock.model.WeatherDataDB;
+import com.hw.diaosiclock.util.HttpCallbackListener;
+import com.hw.diaosiclock.util.HttpUtil;
+import com.hw.diaosiclock.util.LocalUtil;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -71,7 +71,7 @@ public class SelectCityActivity extends Activity{
 
         //验证数据库是否完整，若不完整将删除
         db = WeatherDataDB.getDbInstance(this);
-        if(!db.verifiyDBCorrection()) {
+        if(!db.verifyDBCorrection()) {
             //查看数据库是否存在，如果存在就删了它
             /*
             final File databaseFile = this.getDatabasePath("hw_weatherDB");

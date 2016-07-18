@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:toolbar="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/alarm_set_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            toolbar:title="home_page_toolbar"
+            app:popupTheme="@style/AppTheme.PopupOverlay">
+
+            <TextView
+                android:id = "@+id/save"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="保存"
+                android:layout_gravity="right"
+                android:layout_marginRight="15sp"
+                android:gravity="center_vertical"
+                android:textSize="20sp"
+                android:clickable="true"/>
+
+        </android.support.v7.widget.Toolbar>
+
+    </android.support.design.widget.AppBarLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_marginTop="?attr/actionBarSize">
+        <!--
+        android:divider="@drawable/custom_blackline"
+        android:showDividers="middle"
+        -->
+
+        <LinearLayout
+            android:id="@+id/layout_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:clickable="true">
+
+            <TextView
+                android:id="@+id/title_time"
+                style="@style/AlarmSet_title"
+                android:text="时间" />
+
+            <TextView
+                android:id="@+id/time"
+                style="@style/AlarmSet_content"/>
+
+            <!--    <include layout = "@layout/custom_black_line"/>-->
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_repeat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:clickable="true">
+
+            <TextView
+                android:id="@+id/title_repeat"
+                style="@style/AlarmSet_title"
+                android:text="重复" />
+
+            <include layout="@layout/custom_week"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/AlarmSet_title"
+                android:text = "闹钟名称" />
+
+            <EditText
+                android:id="@+id/alarm_name"
+                android:layout_width="match_parent"
+                style="@style/AlarmSet_content"
+                android:layout_marginRight="@dimen/marginToRight"
+                android:maxLines="2"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_music"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:clickable="true">
+
+            <TextView
+                android:text="闹钟铃声"
+                style="@style/AlarmSet_title"/>
+
+            <TextView
+                android:id="@+id/alarm_music"
+                android:text="默认铃声（Alarm）"
+                style="@style/AlarmSet_content"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_volume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:clickable="true">
+
+            <TextView
+                style="@style/AlarmSet_title"
+                android:text="闹钟音量" />
+
+            <SeekBar
+                android:id="@+id/alarm_volume"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/marginToLeft"
+                android:layout_marginRight="@dimen/marginToRight"
+                android:layout_marginTop="10dp"
+                android:indeterminate="false"
+                android:progress="50"
+                android:max="100"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_interval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:clickable="true">
+
+            <TextView
+                style="@style/AlarmSet_title"
+                android:text="暂停间隔时间" />
+
+            <TextView
+                android:id="@+id/interval"
+                style="@style/AlarmSet_content"/>
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center">
+
+            <TextView
+                style="@style/AlarmSet_title"
+                android:text="振动"
+                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"/>
+
+            <CheckBox
+                android:id="@+id/isVibration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="@dimen/marginToRight"/>
+        </RelativeLayout>
+
+    </LinearLayout>
+
+
+</android.support.design.widget.CoordinatorLayout>

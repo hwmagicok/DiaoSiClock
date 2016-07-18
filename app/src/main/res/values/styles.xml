@@ -5,7 +5,7 @@
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorAccent">@color/color_green</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -13,8 +13,28 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <style name="AppTheme.hw_schedule" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+    </style>
+
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    
+    <style name="AlarmSet_title">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textSize">@dimen/titleTextSize</item>
+        <item name="android:layout_marginLeft">@dimen/marginToLeft</item>
+        <item name="android:layout_marginTop">@dimen/title_marginToTop</item>
+    </style>
 
+    <style name="AlarmSet_content">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@android:color/darker_gray</item>
+        <item name="android:layout_marginLeft">@dimen/marginToLeft</item>
+        <item name="android:layout_marginTop">@dimen/content_marginToTop</item>
+    </style>
 </resources>

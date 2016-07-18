@@ -3,4 +3,10 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
+    <dimen name="marginToRight">15dp</dimen>
+    <dimen name="marginToLeft">15dp</dimen>
+    <dimen name="titleTextSize">20sp</dimen>
+    <dimen name="contextTextSize">15sp</dimen>
+    <dimen name="title_marginToTop">15dp</dimen>
+    <dimen name="content_marginToTop">5dp</dimen>
 </resources>

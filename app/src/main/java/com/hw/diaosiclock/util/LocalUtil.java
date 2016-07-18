@@ -1,4 +1,4 @@
-package com.hw.weather1.util;
+package com.hw.diaosiclock.util;
 
 import android.app.ProgressDialog;
 import android.content.ContentValues;
@@ -11,12 +11,12 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import com.hw.weather1.activity.SelectCityActivity;
-import com.hw.weather1.db.WeatherDataDBHelper;
-import com.hw.weather1.model.City;
-import com.hw.weather1.model.Country;
-import com.hw.weather1.model.Province;
-import com.hw.weather1.model.WeatherDataDB;
+import com.hw.diaosiclock.activity.SelectCityActivity;
+import com.hw.diaosiclock.db.WeatherDataDBHelper;
+import com.hw.diaosiclock.model.City;
+import com.hw.diaosiclock.model.Country;
+import com.hw.diaosiclock.model.Province;
+import com.hw.diaosiclock.model.WeatherDataDB;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

@@ -1,4 +1,4 @@
-package com.hw.weather1.activity;
+package com.hw.diaosiclock.activity;
 
 import android.app.Activity;
 import android.content.Context;
@@ -8,8 +8,8 @@ import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.hw.weather1.R;
-import com.hw.weather1.util.LocalUtil;
+import com.hw.diaosiclock.R;
+import com.hw.diaosiclock.util.LocalUtil;
 
 /**
  * Created by hw on 2016/3/6.

@@ -1,4 +1,4 @@
-package com.hw.weather1.model;
+package com.hw.diaosiclock.model;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -6,8 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import com.hw.weather1.db.WeatherDataDBHelper;
-import com.hw.weather1.util.LocalUtil;
+import com.hw.diaosiclock.db.WeatherDataDBHelper;
+import com.hw.diaosiclock.util.LocalUtil;
 
 import java.util.ArrayList;
 
@@ -165,7 +165,7 @@ public class WeatherDataDB {
         return null;
     }
 
-    public boolean verifiyDBCorrection() {
+    public boolean verifyDBCorrection() {
         boolean ret = true;
         String verifyName = "hw";
         if(null != db) {

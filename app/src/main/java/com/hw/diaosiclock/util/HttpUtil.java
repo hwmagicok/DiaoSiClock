@@ -1,4 +1,4 @@
-package com.hw.weather1.util;
+package com.hw.diaosiclock.util;
 
 import android.util.Log;
 
