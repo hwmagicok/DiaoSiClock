@@ -1,18 +1,10 @@
 package com.hw.diaosiclock.util;
 
-import android.app.ProgressDialog;
-import android.content.ContentValues;
+
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 
-import com.hw.diaosiclock.activity.SelectCityActivity;
-import com.hw.diaosiclock.db.WeatherDataDBHelper;
 import com.hw.diaosiclock.model.City;
 import com.hw.diaosiclock.model.Country;
 import com.hw.diaosiclock.model.Province;
@@ -22,21 +14,52 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 
 /**
  * Created by hw on 2016/2/20.
  */
 public class LocalUtil {
+    public static final String ERRTAG = "LocalUtil";
+    public static final String TAG_EXECUTE_ALARM = "execute alarm";
+    public static final String TAG_SET_MUSIC = "SetAlarmMusic";
+    public static final int TAG_ONETIME_ALARM = 1;
+    public static final int TAG_REPEAT_ALARM = 2;
+
+    public static final String AlarmMusicPath = "Alarm";
+
+    // 系统中周几的表示转化成本程序中Db中周几的表示
+    public static int SysWeekToDbWeek(int sysWeek) {
+        int dbWeek;
+        if(sysWeek <= 0 || sysWeek > 7) {
+            Log.e(ERRTAG, "sysWeek is wrong");
+            return -1;
+        }
+
+        if(Calendar.SUNDAY == sysWeek) {
+            dbWeek = 6;
+        }else {
+            dbWeek = sysWeek - 2;
+        }
+        return dbWeek;
+    }
+
+    // Db中周几的表示转化成系统中周几的表示
+    public static int DbWeekToSysWeek(int dbWeek) {
+        int sysWeek;
+        if(dbWeek < 0 || dbWeek > 6) {
+            Log.e(ERRTAG, "dbWeek is wrong");
+            return -1;
+        }
+
+        sysWeek = (dbWeek + 2) % Calendar.DAY_OF_WEEK;
+        return sysWeek;
+    }
+
 
     //验证数据库是否正常所用
     private static String CurDBKeyTime = null;

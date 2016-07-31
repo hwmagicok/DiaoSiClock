@@ -20,6 +20,7 @@
             android:background="?attr/colorPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay" >
 
+            <!--
             <TextView
                 android:id = "@+id/save"
                 android:layout_width="wrap_content"
@@ -29,7 +30,7 @@
                 android:layout_marginRight="15sp"
                 android:gravity="center_vertical"
                 android:textSize="20sp" />
-
+            -->
 
         </android.support.v7.widget.Toolbar>
 

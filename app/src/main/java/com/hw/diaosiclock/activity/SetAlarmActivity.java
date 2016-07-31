@@ -1,11 +1,14 @@
 package com.hw.diaosiclock.activity;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
@@ -18,10 +21,13 @@ import android.widget.Toast;
 
 import com.hw.diaosiclock.R;
 import com.hw.diaosiclock.model.Alarm;
+import com.hw.diaosiclock.model.AlarmBackgroundService;
 import com.hw.diaosiclock.model.AlarmDB;
 import com.hw.diaosiclock.util.AlarmCallbackListener;
+import com.hw.diaosiclock.util.LocalUtil;
 
-import java.net.URL;
+import java.util.Calendar;
+
 
 /**
  * Created by hw on 2016/5/5.
@@ -29,9 +35,10 @@ import java.net.URL;
 public class SetAlarmActivity extends AppCompatActivity {
 
     public static final String ERRTAG = "SetAlarmActivity";
-    public static final String MUSICTAG = "SetAlarmMusic";
+
     private boolean bRet = true;
     private Alarm alarm = null;
+    private Alarm tmpAlarm = null;
 
     //用来记录Alarm在AlarmList中的位置，默认是-1
     private int AlarmPosition = -1;
@@ -89,10 +96,10 @@ public class SetAlarmActivity extends AppCompatActivity {
             finish();
         }else {
             AlarmPosition = intent.getIntExtra("Set_AlarmData", -1);
-            if(-1 == AlarmPosition) {
-                alarm = new Alarm();
-            }else {
-                alarm = ScheduleActivity.GetAlarmList().get(AlarmPosition);
+            alarm = new Alarm();
+            if(-1 != AlarmPosition) {
+                tmpAlarm = ScheduleActivity.GetAlarmList().get(AlarmPosition);
+                alarm = (Alarm) tmpAlarm.clone();
 
                 SetTimeText(alarm);
                 SetWeekRepeatText(alarm);
@@ -102,8 +109,10 @@ public class SetAlarmActivity extends AppCompatActivity {
                 SetAlarmIntervalText(alarm);
                 SetAlarmShockText(alarm);
             }
-
         }
+
+        // 闹钟的开关打开
+        alarm.setAlarmSwitch(true);
 
         //设置闹钟时间
         layout_time = (LinearLayout)findViewById(R.id.layout_time);
@@ -197,13 +206,24 @@ public class SetAlarmActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(SetAlarmActivity.this, SelectAlarmMusicActivity.class);
                 if(-1 != AlarmPosition) {
-                    intent.putExtra(MUSICTAG, alarm.getAlarmMusic());
+                    intent.putExtra(LocalUtil.TAG_SET_MUSIC, alarm.getAlarmMusic());
                 }
                 startActivityForResult(intent, ScheduleActivity.CODE_SET_ALARM_MUSIC);
             }
         });
 
         //设置闹钟音量
+        // 先设置progress bar的最大音量
+        AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+
+        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM);
+        alarm_volume.setMax(maxVolume);
+        if(null == tmpAlarm) {
+            // 这说明是新创建的Alarm而非要进行修改的
+            alarm_volume.setProgress(maxVolume/2);
+            alarm.setVolume(maxVolume/2);
+        }
+
         alarm_volume.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -228,19 +248,22 @@ public class SetAlarmActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder dialog = new AlertDialog.Builder(SetAlarmActivity.this);
-                String[] interval_choice = {"5分钟", "10分钟", "15分钟"};
+                String[] interval_choice = {"3分钟", "5分钟", "10分钟", "15分钟"};
 
                 dialog.setSingleChoiceItems(interval_choice, -1, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
                             case 0:
-                                alarm.setAlarm_interval(5);
+                                alarm.setAlarm_interval(3);
                                 break;
                             case 1:
-                                alarm.setAlarm_interval(10);
+                                alarm.setAlarm_interval(5);
                                 break;
                             case 2:
+                                alarm.setAlarm_interval(10);
+                                break;
+                            case 3:
                                 alarm.setAlarm_interval(15);
                                 break;
                             default:
@@ -290,18 +313,44 @@ public class SetAlarmActivity extends AppCompatActivity {
                 if(-1 == AlarmPosition) {
                     alarmDB.saveAlarm(alarm);
                     //intent.putExtra("Create Alarm", alarm);
+                    int id = AlarmDB.getInstance(SetAlarmActivity.this).getLastAlarmID();
+                    if(-1 == id) {
+                        Log.e(ERRTAG, "the last id is wrong");
+                        return;
+                    }
+                    alarm.setId(id);
+                    ScheduleActivity.GetAlarmList().add(alarm);
+
                 }else {
                     alarmDB.updateSpecificAlarm(alarm);
-                    intent.putExtra("Set Alarm", alarm);
+                    //intent.putExtra("Set Alarm", alarm);
+                    tmpAlarm.copyFromAlarm(alarm);
                 }
 
                 setResult(RESULT_OK, intent);
 
+                // 此处开始，调用service和定时器
+                Intent service_intent = new Intent(SetAlarmActivity.this, AlarmBackgroundService.class);
+                service_intent.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm);
+                startService(service_intent);
 
                 finish();
-
             }
         });
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.alarm_set_toolbar);
+        //toolbar.setTitle("闹钟设置");
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        // 返回键点击逻辑
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
     }
 
     //通过Alarm中数据设置SetAlarmActivity界面的显示
@@ -381,6 +430,10 @@ public class SetAlarmActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(null == data) {
+            Log.e(ERRTAG, "intent from SelectAlarmMusicActivity is null");
+            return;
+        }
         switch (requestCode) {
             case ScheduleActivity.CODE_SET_ALARM_MUSIC:
                 String fullMusicName = data.getStringExtra("return_musicname");

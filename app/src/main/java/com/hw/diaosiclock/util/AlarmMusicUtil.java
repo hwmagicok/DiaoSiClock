@@ -43,7 +43,7 @@ public class AlarmMusicUtil {
             }
         }catch (Exception e) {
             Log.e(ERRTAG, "SearchAssetsMusic error");
-            e.printStackTrace();
+            Log.e(ERRTAG, Log.getStackTraceString(e));
         }
 
     }

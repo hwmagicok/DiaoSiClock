@@ -160,7 +160,8 @@ public class AlarmDB {
             Log.e(ERRTAG, "outputAlarmAllPara cursor is null");
         }
 
-        Log.e(ERRTAG, "alarm name [" + cursor.getString(cursor.getColumnIndex("alarm_name"))
+        Log.e(ERRTAG, "alarm id [" + cursor.getString(cursor.getColumnIndex("id"))
+                + "] alarm name [" + cursor.getString(cursor.getColumnIndex("alarm_name"))
                 + "] time [" + cursor.getString(cursor.getColumnIndex("time")) + "]");
     }
 
@@ -172,7 +173,6 @@ public class AlarmDB {
         Alarm alarm = new Alarm();
         int week_status[] = new int[7];
 
-        // 此处是唯一设置alarmID的地方，ID值是由数据库auto increment的，此处取出赋值到Alarm中
         alarm.setId(cursor.getInt(cursor.getColumnIndex("id")));
         if(!alarm.setTime(cursor.getString(cursor.getColumnIndex("time")))) {
             cursor.close();
@@ -199,5 +199,16 @@ public class AlarmDB {
         alarm.setVolume(cursor.getInt(cursor.getColumnIndex("volume")));
 
         return alarm;
+    }
+
+    // 创建完Alarm后将其保存在数据库中，并从数据库中获取该Alarm的ID
+    public synchronized int getLastAlarmID() {
+        Cursor cursor = db.rawQuery("select id from Alarm", null);
+        int id = -1;
+        if(cursor.moveToLast()) {
+            id = cursor.getInt(cursor.getColumnIndex("id"));
+        }
+        cursor.close();
+        return id;
     }
 }

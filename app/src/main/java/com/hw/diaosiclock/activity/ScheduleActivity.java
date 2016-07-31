@@ -24,10 +24,12 @@ import com.hw.diaosiclock.model.AlarmAdapter;
 import com.hw.diaosiclock.model.AlarmDB;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 
 public class ScheduleActivity extends AppCompatActivity {
     public static final String ERRTAG = "ScheduleActivity";
+
     private static ArrayList<Alarm> AlarmList;
     private AlarmAdapter alarmAdapter;
     private AlarmDB alarmDB;
@@ -60,9 +62,6 @@ public class ScheduleActivity extends AppCompatActivity {
 
         if(cursor.moveToFirst()) {
             do {
-                /* Todo: AlarmID保存问题
-                此处会有个问题，alarmID只会在每次打开软件的时候才会赋值到每个alarm中，
-                若创建后立马就修改应该有问题，alarm缺少ID */
                 AlarmList.add(alarmDB.getAlarmByCursor(cursor));
                 alarmDB.outputAlarmAllPara(cursor);
             }while (cursor.moveToNext());
@@ -106,13 +105,19 @@ public class ScheduleActivity extends AppCompatActivity {
 
         /* end:list长按弹出contextMenu */
 
-
-        //点击加号创建闹钟
         Toolbar toolbar = (Toolbar) findViewById(R.id.schedule_view_toolbar);
         toolbar.setTitle("hw闹钟");
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        // 返回键点击逻辑
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
 
+        //点击加号创建闹钟
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -175,6 +180,10 @@ public class ScheduleActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(null == data) {
+            Log.e(ERRTAG, "intent from SetAlarmActivity is null");
+            return;
+        }
         switch (requestCode) {
             // 这个地有妥协，刚创建完Alarm还没有获得ID，出去修改会由于没有ID找不到对应的Alarm
             // 故此处每次创建完清除老列表，用数据库重新填充列表
@@ -187,6 +196,7 @@ public class ScheduleActivity extends AppCompatActivity {
                         alarmAdapter.notifyDataSetChanged();
                     }
                     */
+                    /*
                     AlarmList.clear();
 
                     cursor = alarmDB.queryAllAlarm();
@@ -200,12 +210,12 @@ public class ScheduleActivity extends AppCompatActivity {
                     }else {
                         Log.e(ERRTAG, "moveToFirst fail");
                     }
-                    alarmAdapter.notifyDataSetChanged();
+                    */
                 }
                 break;
 
             case CODE_SET_ALARM:
-
+                /*
                 if(-1 == modifyAlarmPosition) {
                     Log.e(ERRTAG, "the position of modified Alarm is wrong");
                 } else {
@@ -221,10 +231,13 @@ public class ScheduleActivity extends AppCompatActivity {
                     }
                     break;
                 }
+                */
+                break;
         }
+        alarmAdapter.notifyDataSetChanged();
     }
 
-    static ArrayList<Alarm> GetAlarmList() {
+    static synchronized ArrayList<Alarm> GetAlarmList() {
         return AlarmList;
     }
 

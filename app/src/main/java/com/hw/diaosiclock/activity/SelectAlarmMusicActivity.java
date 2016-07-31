@@ -17,6 +17,7 @@ import android.widget.RadioButton;
 import com.hw.diaosiclock.R;
 import com.hw.diaosiclock.model.AlarmMusicAdapter;
 import com.hw.diaosiclock.util.AlarmMusicUtil;
+import com.hw.diaosiclock.util.LocalUtil;
 
 import java.util.ArrayList;
 
@@ -50,7 +51,7 @@ public class SelectAlarmMusicActivity extends AppCompatActivity {
         listAdapter = new AlarmMusicAdapter(this, R.layout.alarm_music, MusicList);
         musicListView.setAdapter(listAdapter);
 
-        AlarmMusicUtil.SearchAssetsMusic(this, MusicList, path, keywords);
+        AlarmMusicUtil.SearchAssetsMusic(this, MusicList, LocalUtil.AlarmMusicPath, keywords);
 
         /* start：此处是为了在修改闹钟的时候，打开Alarm Music列表能正确显示出上一次的选择 */
         final Intent intent = getIntent();
@@ -58,7 +59,7 @@ public class SelectAlarmMusicActivity extends AppCompatActivity {
             Log.e(ERRTAG, "intent is null");
             finish();
         } else {
-            String preAlarmMusicName = intent.getStringExtra(SetAlarmActivity.MUSICTAG);
+            String preAlarmMusicName = intent.getStringExtra(LocalUtil.TAG_SET_MUSIC);
             if(null != preAlarmMusicName) {
                 DotPosition = MusicList.indexOf(preAlarmMusicName);
                 listAdapter.getView(DotPosition, null, null);
@@ -67,6 +68,7 @@ public class SelectAlarmMusicActivity extends AppCompatActivity {
         /* end */
 
         listAdapter.notifyDataSetChanged();
+        musicListView.setSelection(DotPosition);
 
         musicListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -95,14 +97,12 @@ public class SelectAlarmMusicActivity extends AppCompatActivity {
                         AssetFileDescriptor AlarmMusicDescriptor;
                         SelectedMusic = musicName;
 
-                        if(mediaPlayer.isPlaying()) {
-                            mediaPlayer.reset();
-                        }
+                        mediaPlayer.reset();
 
                         try {
                             mediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
                             assetManager = getAssets();
-                            AlarmMusicDescriptor = assetManager.openFd(path + "/" + musicName);
+                            AlarmMusicDescriptor = assetManager.openFd(LocalUtil.AlarmMusicPath + "/" + musicName);
                             mediaPlayer.setDataSource(AlarmMusicDescriptor.getFileDescriptor(),
                                     AlarmMusicDescriptor.getStartOffset(), AlarmMusicDescriptor.getLength());
 
@@ -114,7 +114,7 @@ public class SelectAlarmMusicActivity extends AppCompatActivity {
                             break;
                         }catch (Exception e) {
                             Log.e(ERRTAG, "Err on playing alarm music");
-                            Log.e(ERRTAG, Log.getStackTraceString(e));
+                            Log.getStackTraceString(e);
                             return;
                         }
 
@@ -128,6 +128,13 @@ public class SelectAlarmMusicActivity extends AppCompatActivity {
         toolbar.setTitle("闹钟铃声");
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        // 返回键点击逻辑
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 
     @Override

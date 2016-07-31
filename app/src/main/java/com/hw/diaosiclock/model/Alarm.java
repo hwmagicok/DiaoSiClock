@@ -5,6 +5,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
@@ -17,7 +18,8 @@ import java.util.Calendar;
 /**
  * Created by hw on 2016/4/3.
  */
-public class Alarm implements Parcelable {
+public class Alarm implements Parcelable, Cloneable {
+    public static final String ERRTAG = "Alarm";
     /* id是闹钟的唯一标示，不存入数据库，该值是数据库自动赋值(auto increment)
         取值唯一, 只用来取值使用 */
     private int AlarmID;
@@ -49,6 +51,7 @@ public class Alarm implements Parcelable {
     }
 
     public Alarm(Parcel in) {
+        setId(in.readInt());
         setAlarmSwitch(in.readInt() == 1);
         setHour(in.readInt());
         setMinute(in.readInt());
@@ -64,8 +67,9 @@ public class Alarm implements Parcelable {
 
     /* 用于设置闹钟界面设置闹铃时间 */
     public boolean AddAlarm(final Context context, final AlarmCallbackListener listener) {
-        Boolean bRet = true;
         final Alarm tmpAlarm = this;
+        int initHour = 0;
+        int initMinute = 0;
         Calendar calendar = Calendar.getInstance();
         String timeFormat = android.provider.Settings.System.getString(context.getContentResolver(),
                                                         android.provider.Settings.System.TIME_12_24);
@@ -76,12 +80,21 @@ public class Alarm implements Parcelable {
             set24HourFormat(true);
         }
 
+        String timeStr = ((TextView)((SetAlarmActivity)context).findViewById(R.id.time)).getText().toString();
+        if(timeStr.equals("")) {
+            initHour = calendar.get(Calendar.HOUR_OF_DAY);
+            initMinute = calendar.get(Calendar.MINUTE);
+        }else {
+            String[] timeSegment = timeStr.split(":");
+            initHour = Integer.parseInt(timeSegment[0]);
+            initMinute = Integer.parseInt(timeSegment[1]);
+        }
+
         new TimePickerDialog(context, new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
                 Calendar tmpCalendar = Calendar.getInstance();
                 Calendar curCalendar = Calendar.getInstance();
-
 
                 tmpCalendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
                 tmpCalendar.set(Calendar.MINUTE, minute);
@@ -97,7 +110,7 @@ public class Alarm implements Parcelable {
                 listener.onFinish(tmpAlarm);
 
             }
-        }, calendar.HOUR_OF_DAY, calendar.MINUTE, is24HourFormat).show();
+        }, initHour, initMinute, is24HourFormat).show();
         return true;
     }
 
@@ -260,11 +273,56 @@ public class Alarm implements Parcelable {
     }
 
     @Override
+    // 深复制
+    public Object clone() {
+        Alarm newAlarm = null;
+        try {
+            newAlarm = (Alarm)super.clone();
+        }catch (Exception e) {
+            Log.e(ERRTAG, "clone fail");
+            Log.e(ERRTAG, Log.getStackTraceString(e));
+        }
+        return newAlarm;
+    }
+
+    // 浅复制
+    public void copyFromAlarm(Alarm alarm) {
+        if(null == alarm) {
+            Log.e(ERRTAG, "alarm is null");
+            return;
+        }
+
+        AlarmSwitch = alarm.getAlarmOnOrOff();
+        hour = alarm.getTimeHour();
+        minute = alarm.getTimeMinute();
+        System.arraycopy(alarm.getWeekStatus(), 0, week, 0, 7);
+        music = alarm.getAlarmMusic();
+        volume = alarm.getVolume();
+        isShock = alarm.getShockStatus();
+        AlarmName = alarm.getAlarmName();
+        Alarm_interval = alarm.getAlarm_interval();
+        isLastSaturday = alarm.getLastSaturday();
+        is24HourFormat = alarm.get24HourFormat();
+    }
+
+    public boolean isRepeatAlarm() {
+        boolean bRet = false;
+        for(int i : getWeekStatus()) {
+            if(i == 1) {
+                bRet = true;
+                break;
+            }
+        }
+        return bRet;
+    }
+
+    @Override
     public void writeToParcel(Parcel dest, int flags) {
         if(null == dest) {
             dest = Parcel.obtain();
         }
 
+        dest.writeInt(AlarmID);
         dest.writeInt(AlarmSwitch ? 1 : 0);
         dest.writeInt(hour);
         dest.writeInt(minute);
