@@ -16,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
 import android.widget.ListView;
 
 import com.hw.diaosiclock.R;
@@ -34,6 +35,7 @@ public class ScheduleActivity extends AppCompatActivity {
     private AlarmAdapter alarmAdapter;
     private AlarmDB alarmDB;
     private ListView alarmListView;
+    private CheckBox AlarmSwitch;
 
     public static final int CODE_CREATE_ALARM = 1;
     public static final int CODE_SET_ALARM = 2;
@@ -82,6 +84,9 @@ public class ScheduleActivity extends AppCompatActivity {
                 Intent intent_modifyAlarm = new Intent(ScheduleActivity.this, SetAlarmActivity.class);
                 intent_modifyAlarm.putExtra("Set_AlarmData", position);
                 startActivityForResult(intent_modifyAlarm, CODE_SET_ALARM);
+
+                AlarmSwitch = (CheckBox)findViewById(R.id.alarm_switch);
+
             }
         });
 

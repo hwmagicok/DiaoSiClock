@@ -59,6 +59,7 @@ public class AlarmDB {
         }
 
         db.execSQL("update Alarm set alarm_name = ?," +
+                "switch = ?," +
                 "time = ?," +
                 "monday_status = ?," +
                 "tuesday_status = ?," +
@@ -76,6 +77,7 @@ public class AlarmDB {
                 "where id = ?",
                 new String[] {
                         alarm.getAlarmName(),
+                        String.valueOf(alarm.getAlarmOnOrOff() ? 1 : 0),
                         alarm.getTime(),
                         weekStr[0], weekStr[1], weekStr[2], weekStr[3], weekStr[4], weekStr[5], weekStr[6],
                         String.valueOf(alarm.getVolume()),
@@ -95,6 +97,7 @@ public class AlarmDB {
         }
         ContentValues content = new ContentValues();
         content.put("alarm_name", alarm.getAlarmName());
+        content.put("switch", alarm.getAlarmOnOrOff() ? 1 : 0);
         content.put("time", alarm.getTime());
         content.put("monday_status", String.valueOf(alarm.getWeekStatus()[0]));
         content.put("tuesday_status", String.valueOf(alarm.getWeekStatus()[1]));
@@ -165,6 +168,8 @@ public class AlarmDB {
                 + "] time [" + cursor.getString(cursor.getColumnIndex("time")) + "]");
     }
 
+    // 调用该函数的时候，确保cursor的游标不在最后，否则会出现
+    // “CursorIndexOutOfBoundsException: Index -1 requested”的错误
     public Alarm getAlarmByCursor(Cursor cursor) {
         if(null == cursor) {
             Log.e(ERRTAG, "cursor is null");
@@ -181,6 +186,7 @@ public class AlarmDB {
         }
 
         alarm.setAlarmName(cursor.getString(cursor.getColumnIndex("alarm_name")));
+        alarm.setAlarmSwitch(cursor.getInt(cursor.getColumnIndex("switch")) == 1);
 
         week_status[0] = cursor.getInt(cursor.getColumnIndex("monday_status"));
         week_status[1] = cursor.getInt(cursor.getColumnIndex("tuesday_status"));

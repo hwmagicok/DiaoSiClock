@@ -331,7 +331,8 @@ public class SetAlarmActivity extends AppCompatActivity {
 
                 // 此处开始，调用service和定时器
                 Intent service_intent = new Intent(SetAlarmActivity.this, AlarmBackgroundService.class);
-                service_intent.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm);
+                //service_intent.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm);
+                service_intent.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm.getAlarmID());
                 startService(service_intent);
 
                 finish();

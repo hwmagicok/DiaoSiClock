@@ -4,6 +4,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -21,20 +22,12 @@ import java.util.TimeZone;
  * Created by hw on 2016/7/23.
  */
 public class AlarmBackgroundService extends Service {
-    private AlarmManager alarmManager = null;
-    private Alarm revAlarm = null;
     public static final String ERRTAG = "AlarmBackgroundService";
-    private String triggerTimeStr = "距离闹钟时间还有";
+    private AlarmManager alarmManager = null;
+    private Alarm alarm = null;
+    private String triggerTimeStr = null;
     @Override
     public IBinder onBind(Intent intent) {
-        if(null == intent) {
-            Log.e(ERRTAG, "intent is null");
-        }else {
-            revAlarm = intent.getParcelableExtra(LocalUtil.TAG_EXECUTE_ALARM);
-            if(null == revAlarm) {
-                Log.e(ERRTAG, "received alarm is null");
-            }
-        }
         return null;
     }
 
@@ -47,25 +40,41 @@ public class AlarmBackgroundService extends Service {
                     Log.e(ERRTAG, "intent is null");
                     return;
                 }
-                Alarm alarm = intent.getParcelableExtra(LocalUtil.TAG_EXECUTE_ALARM);
+
+                // 每次都从数据库中取出，这样可以保证满足闹钟的实时变化
+                AlarmDB db = AlarmDB.getInstance(getApplicationContext());
+                if(null == db) {
+                    Log.e(ERRTAG, "db is null");
+                    return;
+                }
+                int AlarmId = intent.getIntExtra(LocalUtil.TAG_EXECUTE_ALARM, -1);
+                if(-1 == AlarmId) {
+                    Log.e(ERRTAG, "alarm id is wrong");
+                    return;
+                }
+                //Alarm alarm = intent.getParcelableExtra(LocalUtil.TAG_EXECUTE_ALARM);
+                Cursor cursor = db.querySpecificAlarm(AlarmId);
+                if(cursor.moveToFirst()) {
+                    alarm = db.getAlarmByCursor(cursor);
+                }else {
+                    Log.e(ERRTAG, "cursor is null");
+                }
                 if(null == alarm) {
                     Log.e(ERRTAG, "alarm is null");
                     return;
                 }
 
                 Intent AlarmOnTime = new Intent("com.hw.diaosiclock.EXECUTE_CLOCK");
-
-                /*
-                if(Intent.FLAG_ACTIVITY_NEW_TASK != AlarmOnTime.getFlags()) {
-                    AlarmOnTime.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                }
-                */
                 AlarmOnTime.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm);
-
                 PendingIntent pi = PendingIntent.getBroadcast(AlarmBackgroundService.this, alarm.getAlarmID(),
                                                     AlarmOnTime, PendingIntent.FLAG_UPDATE_CURRENT);
 
                 alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+
+                if(alarm.getAlarmOnOrOff() == false) {
+                    alarmManager.cancel(pi);
+                    return;
+                }
 
                 int[] weekStatus = alarm.getWeekStatus();
                 Calendar calendar = Calendar.getInstance();
@@ -155,6 +164,11 @@ public class AlarmBackgroundService extends Service {
                     minute = totalMin % 60;
                     hour = totalMin / 60;
                     day = hour / 24;
+                    if(day >= 1) {
+                        hour %= 24;
+                    }
+
+                    triggerTimeStr = "距离闹钟时间还有";
 
                     /* start:此处为了在设置后显示出下一个闹钟距今还有多久 */
                     // 由于Toast需要在UI界面上显示，因此使用Looper找到主线程(?)，通过handler发消息

@@ -25,6 +25,7 @@
         <item name="android:windowBackground">@color/color_transparent</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowAnimationStyle">@android:style/Animation.Translucent</item>
+        <item name="colorPrimaryDark">@color/color_transparent</item>
     </style>
     
     <style name="AlarmSet_title">

@@ -31,7 +31,7 @@
 
             <include layout="@layout/custom_week"/>
 
-    </LinearLayout>
+        </LinearLayout>
 
     </LinearLayout>
 

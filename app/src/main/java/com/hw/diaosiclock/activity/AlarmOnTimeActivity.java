@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.WindowManager;
 
 import com.hw.diaosiclock.R;
 import com.hw.diaosiclock.model.Alarm;
@@ -49,6 +50,8 @@ public class AlarmOnTimeActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_alarm_ontime);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
 
         final Intent intentFromReceiver = getIntent();
         if(null == intentFromReceiver) {
@@ -201,7 +204,8 @@ public class AlarmOnTimeActivity extends Activity {
         if(null == intent) {
             intent = new Intent("com.hw.diaosiclock.EXECUTE_CLOCK");
         }
-        intent.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm);
+        //intent.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm);
+        intent.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm.getAlarmID());
 
         pi = PendingIntent.getBroadcast(AlarmOnTimeActivity.this, alarm.getAlarmID(), intent, 0);
 
@@ -227,7 +231,8 @@ public class AlarmOnTimeActivity extends Activity {
         mediaPlayer.release();
 
         StartServiceIntent = new Intent(AlarmOnTimeActivity.this, AlarmBackgroundService.class);
-        StartServiceIntent.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm);
+        //StartServiceIntent.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm);
+        StartServiceIntent.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm.getAlarmID());
         startService(StartServiceIntent);
     }
 

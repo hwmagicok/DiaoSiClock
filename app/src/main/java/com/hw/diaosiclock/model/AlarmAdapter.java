@@ -1,6 +1,9 @@
 package com.hw.diaosiclock.model;
 
+import android.app.Activity;
+import android.app.AlarmManager;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,6 +15,7 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.hw.diaosiclock.R;
+import com.hw.diaosiclock.util.LocalUtil;
 
 import java.util.List;
 
@@ -19,15 +23,17 @@ import java.util.List;
  * Created by hw on 2016/4/3.
  */
 public class AlarmAdapter extends ArrayAdapter<Alarm> {
+    public static final String ERRTAG = "AlarmAdapter";
     private int viewID;
+    private AlarmViewHolder holder;
     public AlarmAdapter(Context context, int ViewResourceId, List<Alarm> list) {
         super(context, ViewResourceId, list);
         viewID = ViewResourceId;
     }
     public View getView(int position, View convertView, ViewGroup parent) {
         View view;
-        AlarmViewHolder holder;
-        Alarm alarm = getItem(position);
+
+        final Alarm alarm = getItem(position);
         if(null == convertView) {
             view = LayoutInflater.from(getContext()).inflate(viewID, null);
             holder = new AlarmViewHolder();
@@ -56,7 +62,7 @@ public class AlarmAdapter extends ArrayAdapter<Alarm> {
         int[] weekstatus = alarm.getWeekStatus();
 
         if(null == weekstatus) {
-            Log.e("AlarmAdapter", "WeekStatus is null");
+            Log.e(ERRTAG, "WeekStatus is null");
         }
 
         holder.monday_status.setTextColor(WeekColor(weekstatus[0]));
@@ -68,6 +74,26 @@ public class AlarmAdapter extends ArrayAdapter<Alarm> {
         holder.sunday_status.setTextColor(WeekColor(weekstatus[6]));
 
         holder.alarm_switch.setChecked(alarm.getAlarmOnOrOff());
+        holder.alarm_switch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                CheckBox curCheckBox = (CheckBox)v.findViewById(R.id.alarm_switch);
+
+                boolean status = curCheckBox.isChecked();
+                alarm.setAlarmSwitch(status);
+
+                AlarmDB alarmDB = AlarmDB.getInstance(getContext());
+                if(null == alarmDB) {
+                    Log.e(ERRTAG, "db is null");
+                    return;
+                }
+                alarmDB.updateSpecificAlarm(alarm);
+                // 实际上架构应该使用ContentObserver，但是由于时间紧迫，就等下次改进吧
+                Intent intent = new Intent(getContext(), AlarmBackgroundService.class);
+                intent.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm.getAlarmID());
+                getContext().startService(intent);
+            }
+        });
 
         return view;
     }
