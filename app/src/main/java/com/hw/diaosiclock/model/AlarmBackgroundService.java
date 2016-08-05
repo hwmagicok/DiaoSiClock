@@ -71,7 +71,7 @@ public class AlarmBackgroundService extends Service {
 
                 alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
 
-                if(alarm.getAlarmOnOrOff() == false) {
+                if(!alarm.getAlarmOnOrOff()) {
                     alarmManager.cancel(pi);
                     return;
                 }
@@ -79,7 +79,8 @@ public class AlarmBackgroundService extends Service {
                 int[] weekStatus = alarm.getWeekStatus();
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTimeZone(TimeZone.getTimeZone("GMT+8:00"));
-                long curTime = calendar.getTimeInMillis();
+                //long curTime = calendar.getTimeInMillis();
+                long curTime = System.currentTimeMillis();
                 long triggerTime = 0;
 
                 calendar.set(Calendar.HOUR_OF_DAY, alarm.getTimeHour());
@@ -110,9 +111,12 @@ public class AlarmBackgroundService extends Service {
                     AlarmOnTime.putExtra(LocalUtil.TAG_EXECUTE_ALARM, LocalUtil.TAG_REPEAT_ALARM);
 
                     while (loop >= 0) {
-                        if(weekStatus[LocalUtil.SysWeekToDbWeek(curWeekDay)] != 0) {
+                        if(weekStatus[LocalUtil.SysWeekToDbWeek(curWeekDay)] != 0
+                                || (curDay == alarm.getLastSaturday()
+                                    && curMonth == alarm.getMonthOfLastSaturday())) {
                             loop--;
 
+                            long setTime = calendar.getTimeInMillis();
                             // 若闹钟时间在当前时间的后面，则当天可以设定闹钟，结束循环
                             if(calendar.getTimeInMillis() > curTime) {
                                 triggerTime = calendar.getTimeInMillis() - curTime;
@@ -135,9 +139,20 @@ public class AlarmBackgroundService extends Service {
                                 curMonth = 0;
                                 curYear++;
                             }
+                            /* start:刷新每个月的月末周六 */
+                            if(alarm.getMonthOfLastSaturday() != curMonth) {
+                                alarm.setMonthOfLastSaturday(curMonth);
+                                LocalUtil.getLastSaturdayOfMonth(calendar, alarm);
+                                alarm.setLastSaturday(calendar.get(Calendar.DAY_OF_MONTH));
+
+                                db.updateSpecificAlarm(alarm);
+                            }
+                            /* end:刷新每个月的月末周六 */
                         }
 
-                        if(weekStatus[LocalUtil.SysWeekToDbWeek(curWeekDay)] != 0) {
+                        if(weekStatus[LocalUtil.SysWeekToDbWeek(curWeekDay)] != 0
+                           || (curMonth == alarm.getMonthOfLastSaturday()
+                                && curDay == alarm.getLastSaturday())) {
                             calendar.set(Calendar.YEAR, curYear);
                             calendar.set(Calendar.MONTH, curMonth);
                             calendar.set(Calendar.DAY_OF_MONTH, curDay);

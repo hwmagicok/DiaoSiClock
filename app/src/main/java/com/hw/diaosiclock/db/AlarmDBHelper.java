@@ -24,6 +24,7 @@ public class AlarmDBHelper extends SQLiteOpenHelper {
             "interval integer, " +
             "shock integer, " +
             "music varchar(50), " +
+            "month integer, " +
             "last_saturday integer, " +
             "TimeFormat24H integer)";
 

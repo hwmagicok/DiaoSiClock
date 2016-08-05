@@ -81,6 +81,10 @@ public class AlarmOnTimeActivity extends Activity {
         alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
 
         // 播放闹铃音乐。也不知道这个地是不是该开个线程
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setLooping(true);
+        LocalUtil.playAlarmMusic(mediaPlayer, AlarmOnTimeActivity.this, alarm);
+        /*
         try {
             AssetFileDescriptor AlarmMusicDescriptor;
             AssetManager assetManager = getAssets();
@@ -103,6 +107,7 @@ public class AlarmOnTimeActivity extends Activity {
             Log.e(ERRTAG, "fail to play the alarm music");
             Log.getStackTraceString(e);
         }
+        */
 
         // 打开震动
         if(alarm.getShockStatus()) {

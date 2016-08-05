@@ -1,23 +1,19 @@
 package com.hw.diaosiclock.util;
 
 
+import android.app.PendingIntent;
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.util.Log;
 
-import com.hw.diaosiclock.model.City;
-import com.hw.diaosiclock.model.Country;
-import com.hw.diaosiclock.model.Province;
-import com.hw.diaosiclock.model.WeatherDataDB;
+import com.hw.diaosiclock.model.Alarm;
+import com.hw.diaosiclock.model.AlarmBackgroundService;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 /**
@@ -60,162 +56,127 @@ public class LocalUtil {
         return sysWeek;
     }
 
+    // 获得月末周六的时间，时间保存在calendar中，传进来的calendar需确保跟现有年月一致无误
+    public static void getLastSaturdayOfMonth(Calendar calendar, Alarm alarm) {
+        if(null == alarm) {
+            Log.e(ERRTAG, "alarm is null");
+            return;
+        }
+        if(null == calendar) {
+            calendar = Calendar.getInstance();
+        }
 
-    //验证数据库是否正常所用
-    private static String CurDBKeyTime = null;
+        calendar.add(Calendar.MONTH, 1);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, alarm.getTimeHour());
+        calendar.set(Calendar.MINUTE, alarm.getTimeMinute());
+        calendar.set(Calendar.SECOND, 0);
+        calendar.add(Calendar.DAY_OF_MONTH, -1);
 
-    public synchronized static void LoadAllLocation(Context context) {
-        String localAddress = "ChinaLocationData.txt";
-        FileInputStream input = null;
-        BufferedReader reader = null;
+        int weekDay = calendar.get(Calendar.DAY_OF_WEEK);
+        if(Calendar.SUNDAY == weekDay) {
+            calendar.add(Calendar.DAY_OF_MONTH, -1);
+        }else if(Calendar.SATURDAY != weekDay) {
+            calendar.add(Calendar.DAY_OF_MONTH, -weekDay);
+        }
+    }
+
+    // 使用alarm中的音乐进行播放
+    public static boolean playAlarmMusic(MediaPlayer mediaPlayer, Context context, Alarm alarm) {
+
+        if(null == context || null == alarm) {
+            Log.e(ERRTAG, "context or alarm is null");
+            return false;
+        }
+
+        boolean bRet = true;
+        if(null == mediaPlayer) {
+            mediaPlayer = new MediaPlayer();
+        }
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
+        mediaPlayer.reset();
 
         try {
-            input = context.openFileInput(localAddress);
-            reader = new BufferedReader(new InputStreamReader(input));
-            StringBuffer locationJsonData = new StringBuffer();
-            String line;
+            AssetFileDescriptor AlarmMusicDescriptor;
+            AssetManager assetManager = context.getAssets();
+            String AlarmMusicName;
 
-            while(null != (line = reader.readLine())) {
-                locationJsonData.append(line);
-            }
+            AlarmMusicName = alarm.getAlarmMusic();
 
-            WeatherDataDB db = WeatherDataDB.getDbInstance(context);
-            JSONObject locationJsonObj = new JSONObject((locationJsonData.toString()));
-            JSONArray ChinaJsonArr = locationJsonObj.getJSONArray("list");
-
-            JSONObject provinceJson = null;
-            JSONObject cityJson = null;
-            JSONObject countryJson = null;
-            Province province = new Province();
-            City city = new City();
-            Country country = new Country();
-            JSONArray cityJsonList;
-            JSONArray countryJsonList;
-
-            for(int i = 0 ; i < ChinaJsonArr.length(); i++) {
-                provinceJson = ChinaJsonArr.getJSONObject(i);
-                //province.SetProvinceCode(provinceJson.getString("id"));
-                province.SetProvinceCode(null);
-                province.SetProvinceName(provinceJson.getString("name"));
-                province.SetProvinceEn(provinceJson.getString("en"));
-
-                db.saveProvince(province);
-                cityJsonList = provinceJson.getJSONArray("list");
-                for(int j = 0; j < cityJsonList.length(); j++) {
-                    cityJson = cityJsonList.getJSONObject(j);
-                    //city.SetCityCode(cityJson.getString("id"));
-                    city.SetCityCode(null);
-                    city.SetCityName(cityJson.getString("name"));
-                    city.SetCityEn(cityJson.getString("en"));
-                    city.SetBelongProvinceEn(provinceJson.getString("en"));
-
-                    db.saveCity(city);
-                    countryJsonList = cityJson.getJSONArray("list");
-
-                    for(int k = 0; k < countryJsonList.length(); k++) {
-                        countryJson = countryJsonList.getJSONObject(k);
-                        country.SetCountryCode(null);
-                        country.SetCountryName(countryJson.getString("name"));
-                        country.SetCountryEn(countryJson.getString("en"));
-                        country.SetBelongCityEn(cityJson.getString("en"));
-
-                        db.saveCountry(country);
-                        countryJson = null;
-                    }
-                    cityJson = null;
-                }
-                provinceJson = null;
-            }
-
-            //加入验证机制，若验证不通过将重新建立数据库
-            Calendar now = Calendar.getInstance();
-            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-            CurDBKeyTime = dateFormat.format(now.getTime());
-
-            /*
-            province.SetProvinceName("hw");
-            province.SetProvinceCode(CurDBKeyTime);
-            province.SetProvinceEn(null);
-            db.saveProvince(province);
-            */
-
-            city.SetCityName("hw");
-            city.SetCityCode(CurDBKeyTime);
-            city.SetCityEn("null");
-            city.SetBelongProvinceEn("null");
-            db.saveCity(city);
-
-            country.SetCountryName("hw");
-            country.SetCountryCode(CurDBKeyTime);
-            country.SetCountryEn("null");
-            country.SetBelongCityEn("null");
-            db.saveCountry(country);
-
-
+            AlarmMusicDescriptor = assetManager.openFd(AlarmMusicPath + "/" + AlarmMusicName);
+            //mediaPlayer.setLooping(true);
+            mediaPlayer.setDataSource(AlarmMusicDescriptor.getFileDescriptor(),
+                    AlarmMusicDescriptor.getStartOffset(), AlarmMusicDescriptor.getLength());
+            mediaPlayer.setVolume(alarm.getVolume(), alarm.getVolume());
+            AlarmMusicDescriptor.close();
+            mediaPlayer.prepare();
+            mediaPlayer.start();
         }catch (Exception e) {
-            Log.e("LocalUtil", "error");
-            e.printStackTrace();
+            bRet = false;
+            Log.e(ERRTAG, "playing alarm music occurs error");
+            Log.getStackTraceString(e);
         }finally {
-            try {
-                if (null != input) {
-                    input.close();
-                }
-                if(null != reader) {
-                    reader.close();
-                }
-            }catch (Exception e) {
-                Log.e("close", "fail");
-                e.printStackTrace();
+            return bRet;
+        }
+
+    }
+
+    // 使用music name代表的音乐进行播放，上一个方法的重载
+    public static boolean playAlarmMusic(MediaPlayer mediaPlayer, Context context, String MusicName) {
+
+        if(null == context || null == MusicName) {
+            Log.e(ERRTAG, "context or music name is null");
+            return false;
+        }
+
+        boolean bRet = true;
+        if(null == mediaPlayer) {
+            mediaPlayer = new MediaPlayer();
+        }
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
+        mediaPlayer.reset();
+
+        try {
+            AssetFileDescriptor AlarmMusicDescriptor;
+            AssetManager assetManager = context.getAssets();
+            AudioManager audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
+
+            String AlarmMusicName = MusicName;
+            int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM);
+
+            AlarmMusicDescriptor = assetManager.openFd(AlarmMusicPath + "/" + AlarmMusicName);
+            //mediaPlayer.setLooping(true);
+            mediaPlayer.setDataSource(AlarmMusicDescriptor.getFileDescriptor(),
+                    AlarmMusicDescriptor.getStartOffset(), AlarmMusicDescriptor.getLength());
+            mediaPlayer.setVolume(maxVolume/2, maxVolume/2);
+            AlarmMusicDescriptor.close();
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+        }catch (Exception e) {
+            bRet = false;
+            Log.e(ERRTAG, "playing alarm music occurs error");
+            Log.getStackTraceString(e);
+        }finally {
+            return bRet;
+        }
+
+    }
+
+    // 重启闹钟服务，应用于开机自启或是进程被关后重新打开应用
+    public static void reopenAlarmService(Context context, ArrayList<Alarm> list) {
+        if(null == context || null == list) {
+            Log.e(ERRTAG, "context or list is null");
+            return;
+        }
+
+        for(Alarm alarm : list) {
+            Intent intent = new Intent(context, AlarmBackgroundService.class);
+            intent.putExtra(TAG_EXECUTE_ALARM, alarm.getAlarmID());
+            PendingIntent pi = PendingIntent.getService(context, alarm.getAlarmID(), intent, PendingIntent.FLAG_NO_CREATE);
+            if(null == pi) {
+                context.startService(intent);
             }
         }
     }
 
-    public static void saveWeatherToSharedPreferences(Context context, final String JsonWeatherStr) {
-        SharedPreferences.Editor editor = context.getSharedPreferences("WeatherInfo", Context.MODE_PRIVATE).edit();
-        editor.clear();
-        editor.commit();
-
-        try {
-            JSONObject JsonWeather = new JSONObject(JsonWeatherStr);
-            JSONArray JsonResult = JsonWeather.getJSONArray("results");
-            JSONObject JsonWeatherInfo = JsonResult.getJSONObject(0);
-            JSONObject JsonLocationInfo = JsonWeatherInfo.getJSONObject("location");
-            JSONObject JsonNowInfo = JsonWeatherInfo.getJSONObject("now");
-            //JSONObject JsonLastUpdataInfo = JsonWeatherInfo.getJSONObject("last_update");
-
-            String countryName = JsonLocationInfo.getString("name");
-            String weatherStatus = JsonNowInfo.getString("text");
-            String temperature = JsonNowInfo.getString("temperature");
-            String picCode = JsonNowInfo.getString("code");
-            String lastUpdata = JsonWeatherInfo.getString("last_update");
-
-            editor.putString("CountryName", countryName);
-            editor.putString("WeatherStatus", weatherStatus);
-            editor.putString("Temperature", temperature);
-            editor.putInt("PicCode", Integer.parseInt(picCode));
-            editor.putString("LastUpdata", lastUpdata);
-
-            editor.commit();
-
-        }catch (Exception e) {
-            Log.e("LocalUtil", "saveWeatherToSharedPreferences error");
-            e.printStackTrace();
-        }
-    }
-
-    public static String GetCurDBKeyTime() {
-        return CurDBKeyTime;
-    }
-
-    public static String splitLastUpdataData(final String str) {
-        if(null == str) {
-            return null;
-        }
-        StringBuilder newData = new StringBuilder();
-        String date[] = str.split("T");
-        String time[] = date[1].split("\\+");
-        newData.append(date[0] + "  ");
-        newData.append(time[0]);
-        return newData.toString();
-    }
 }

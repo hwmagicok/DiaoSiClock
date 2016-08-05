@@ -1,10 +1,12 @@
 package com.hw.diaosiclock.activity;
 
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -12,9 +14,11 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,6 +31,7 @@ import com.hw.diaosiclock.util.AlarmCallbackListener;
 import com.hw.diaosiclock.util.LocalUtil;
 
 import java.util.Calendar;
+import java.util.TimeZone;
 
 
 /**
@@ -58,12 +63,17 @@ public class SetAlarmActivity extends AppCompatActivity {
     private CheckBox alarm_isVibration = null;
     private TextView alarm_save = null;
     private TextView alarm_music = null;
+    private CheckBox alarm_isLastSaturday = null;
+    private TextView alarm_LastSaturdayDate = null;
 
     private LinearLayout layout_time = null;
     private LinearLayout layout_interval = null;
     private LinearLayout layout_repeat = null;
+    private RelativeLayout layout_isLastSaturday = null;
+    private LinearLayout layout_lastSaturday = null;
 
     private AlarmDB alarmDB = null;
+    MediaPlayer mediaPlayer = null;
 
     // 用来展示week重复情况的那个list，实际上是专门为了全选准备的
     private ListView weekStatusList = null;
@@ -87,6 +97,10 @@ public class SetAlarmActivity extends AppCompatActivity {
         alarm_isVibration = (CheckBox)findViewById(R.id.isVibration);
         alarm_music = (TextView)findViewById(R.id.alarm_music);
         alarm_volume = (SeekBar)findViewById(R.id.alarm_volume);
+        alarm_isLastSaturday = (CheckBox)findViewById(R.id.isLastSaturday);
+        layout_lastSaturday = (LinearLayout)findViewById(R.id.layout_select_lastSaturday);
+        layout_isLastSaturday = (RelativeLayout)findViewById(R.id.layout_isLastSaturday);
+        alarm_LastSaturdayDate = (TextView)findViewById(R.id.lastSaturday);
 
         alarm_save = (TextView)findViewById(R.id.save);
 
@@ -108,6 +122,7 @@ public class SetAlarmActivity extends AppCompatActivity {
                 SetAlarmVolumeText(alarm);
                 SetAlarmIntervalText(alarm);
                 SetAlarmShockText(alarm);
+                SetAlarmLastSaturday(alarm);
             }
         }
 
@@ -169,7 +184,7 @@ public class SetAlarmActivity extends AppCompatActivity {
                                     }
                                 }else {
                                     weekChoiceResult[which] = isChecked;
-                                    if(!isChecked && true == weekChoiceResult[0]) {
+                                    if(!isChecked && weekChoiceResult[0]) {
                                         weekChoiceResult[0] = false;
                                         weekStatusList.setItemChecked(0, false);
                                     }
@@ -187,6 +202,21 @@ public class SetAlarmActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 for(int i = 1; i < weekChoiceResult.length; i++) {
                                     alarm.setWeek(i - 1, weekChoiceResult[i]);
+                                    // 当闹钟为单次闹钟，取消月末周六功能，因为如果是单次闹钟还打开月末周六
+                                    // 现有逻辑无法判断究竟是只月末周六响还是明天和月末周六都响
+                                    if(!alarm.isRepeatAlarm()) {
+                                        layout_isLastSaturday.setVisibility(View.GONE);
+                                        layout_lastSaturday.setVisibility(View.GONE);
+                                        alarm.setLastSaturday(0);
+                                    }else {
+                                        layout_isLastSaturday.setVisibility(View.VISIBLE);
+                                        if(0 == alarm.getLastSaturday()) {
+                                            alarm_isLastSaturday.setChecked(false);
+                                        }else {
+                                            alarm_isLastSaturday.setChecked(true);
+                                        }
+                                    }
+
                                     if(!weekChoiceResult[i]) {
                                         WeekTextViewArr[i-1].setTextColor(Color.GRAY);
                                     }else {
@@ -215,7 +245,6 @@ public class SetAlarmActivity extends AppCompatActivity {
         //设置闹钟音量
         // 先设置progress bar的最大音量
         AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-
         int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM);
         alarm_volume.setMax(maxVolume);
         if(null == tmpAlarm) {
@@ -223,6 +252,7 @@ public class SetAlarmActivity extends AppCompatActivity {
             alarm_volume.setProgress(maxVolume/2);
             alarm.setVolume(maxVolume/2);
         }
+
 
         alarm_volume.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -237,7 +267,12 @@ public class SetAlarmActivity extends AppCompatActivity {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                //Todo 这个地还应该添加一个用该音量播放的铃声辅助用户判断音量是否合适
+                if(null == mediaPlayer) {
+                    mediaPlayer = new MediaPlayer();
+                }else {
+                    mediaPlayer.stop();
+                }
+                LocalUtil.playAlarmMusic(mediaPlayer, SetAlarmActivity.this, alarm);
                 alarm.setVolume(seekBar.getProgress());
             }
         });
@@ -285,10 +320,75 @@ public class SetAlarmActivity extends AppCompatActivity {
             }
         });
 
+        // 设置月末周六
+        final Calendar calendar = Calendar.getInstance();
+        alarm_isLastSaturday.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(alarm_isLastSaturday.isChecked()) {
+                    layout_lastSaturday.setVisibility(View.VISIBLE);
+
+                    calendar.setTimeZone(TimeZone.getTimeZone("GMT+8:00"));
+
+                    LocalUtil.getLastSaturdayOfMonth(calendar, alarm);
+
+                    alarm.setMonthOfLastSaturday(calendar.get(Calendar.MONTH));
+                    alarm.setLastSaturday(calendar.get(Calendar.DAY_OF_MONTH));
+                    alarm_LastSaturdayDate.setText(String.valueOf(calendar.get(Calendar.DAY_OF_MONTH) + "日"));
+                }else {
+                    layout_lastSaturday.setVisibility(View.GONE);
+                }
+            }
+        });
+
+        layout_lastSaturday.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                final AlarmCallbackListener callbackListener = new AlarmCallbackListener() {
+                    @Override
+                    public void onFinish(Alarm tmpAlarm) {
+                        alarm.setLastSaturday(calendar.get(Calendar.DAY_OF_MONTH));
+                        alarm_LastSaturdayDate.setText(String.valueOf(calendar.get(Calendar.DAY_OF_MONTH) + "日"));
+                    }
+                };
+
+                new DatePickerDialog(SetAlarmActivity.this, new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                        if(year != calendar.get(Calendar.YEAR) || monthOfYear != calendar.get(Calendar.MONTH)) {
+                            Toast.makeText(SetAlarmActivity.this, "只能选取本月的某个日子。", Toast.LENGTH_SHORT).show();
+                        }else {
+                            /*
+                            calendar.set(Calendar.YEAR, year);
+                            calendar.set(Calendar.MONTH, monthOfYear);
+                            */
+                            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                            calendar.set(Calendar.HOUR_OF_DAY, alarm.getTimeHour());
+                            calendar.set(Calendar.MINUTE, alarm.getTimeMinute());
+                            calendar.set(Calendar.SECOND, 0);
+
+                            if(calendar.getTimeInMillis() <= System.currentTimeMillis()) {
+                                Toast.makeText(SetAlarmActivity.this, "选取的日子在今日之前，选取失败。", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            callbackListener.onFinish(null);
+                        }
+                    }
+                }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
+            }
+        });
+
+
         //设置保存
         alarm_save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(null != mediaPlayer) {
+                    mediaPlayer.stop();
+                    mediaPlayer.release();
+                }
 
                 //设置闹钟名称
                 String name = alarm_name.getText().toString();
@@ -427,6 +527,22 @@ public class SetAlarmActivity extends AppCompatActivity {
             return;
         }
         alarm_isVibration.setChecked(alarm.getShockStatus());
+    }
+
+    protected void SetAlarmLastSaturday(Alarm alarm) {
+        if(null == alarm) {
+            Log.e(ERRTAG, "SetAlarmIntervalText" + "alarm is null");
+            return;
+        }
+        if(alarm.isRepeatAlarm()) {
+            layout_isLastSaturday.setVisibility(View.VISIBLE);
+
+            if(alarm.getLastSaturday() != 0) {
+                alarm_isLastSaturday.setChecked(true);
+                layout_lastSaturday.setVisibility(View.VISIBLE);
+                alarm_LastSaturdayDate.setText(String.valueOf(alarm.getLastSaturday()) + "日");
+            }
+        }
     }
 
     @Override

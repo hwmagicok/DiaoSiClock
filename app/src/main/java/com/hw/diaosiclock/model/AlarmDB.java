@@ -72,6 +72,7 @@ public class AlarmDB {
                 "interval = ?," +
                 "shock = ?," +
                 "music = ?," +
+                "month = ?," +
                 "last_saturday = ?," +
                 "TimeFormat24H = ? " +
                 "where id = ?",
@@ -84,7 +85,8 @@ public class AlarmDB {
                         String.valueOf(alarm.getAlarm_interval()),
                         String.valueOf((alarm.getShockStatus()) ? 1 : 0),
                         alarm.getAlarmMusic(),
-                        String.valueOf((alarm.getLastSaturday()) ? 1 : 0),
+                        String.valueOf(alarm.getMonthOfLastSaturday()),
+                        String.valueOf((alarm.getLastSaturday())),
                         String.valueOf((alarm.get24HourFormat()) ? 1 : 0),
                         String.valueOf(alarm.getAlarmID())});
     }
@@ -110,7 +112,8 @@ public class AlarmDB {
         content.put("interval", alarm.getAlarm_interval());
         content.put("shock", alarm.getShockStatus() ? 1 : 0);
         content.put("music", alarm.getAlarmMusic());
-        content.put("last_saturday", alarm.getLastSaturday() ? 1 : 0);
+        content.put("month", alarm.getMonthOfLastSaturday());
+        content.put("last_saturday", alarm.getLastSaturday());
         content.put("TimeFormat24H", alarm.get24HourFormat() ? 1 : 0);
 
         db.insert("Alarm", null, content);
@@ -137,7 +140,8 @@ public class AlarmDB {
         content.put("interval", alarm.getAlarm_interval());
         content.put("shock", alarm.getShockStatus() ? 1 : 0);
         content.put("music", alarm.getAlarmMusic());
-        content.put("last_saturday", alarm.getLastSaturday() ? 1 : 0);
+        content.put("month", alarm.getMonthOfLastSaturday());
+        content.put("last_saturday", alarm.getLastSaturday());
         content.put("TimeFormat24H", alarm.get24HourFormat() ? 1 : 0);
 
         db.insert("Alarm", null, content);
@@ -199,7 +203,8 @@ public class AlarmDB {
 
         alarm.setShock(cursor.getInt(cursor.getColumnIndex("shock")) > 0);
         alarm.setMusic(cursor.getString(cursor.getColumnIndex("music")));
-        alarm.setLastSaturday(cursor.getInt(cursor.getColumnIndex("last_saturday")) > 0);
+        alarm.setMonthOfLastSaturday(cursor.getInt(cursor.getColumnIndex("month")));
+        alarm.setLastSaturday(cursor.getInt(cursor.getColumnIndex("last_saturday")));
         alarm.set24HourFormat(cursor.getInt(cursor.getColumnIndex("TimeFormat24H")) > 0);
         alarm.setAlarm_interval(cursor.getInt(cursor.getColumnIndex("interval")));
         alarm.setVolume(cursor.getInt(cursor.getColumnIndex("volume")));

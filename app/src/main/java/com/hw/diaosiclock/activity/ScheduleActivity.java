@@ -23,6 +23,7 @@ import com.hw.diaosiclock.R;
 import com.hw.diaosiclock.model.Alarm;
 import com.hw.diaosiclock.model.AlarmAdapter;
 import com.hw.diaosiclock.model.AlarmDB;
+import com.hw.diaosiclock.util.LocalUtil;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -35,7 +36,6 @@ public class ScheduleActivity extends AppCompatActivity {
     private AlarmAdapter alarmAdapter;
     private AlarmDB alarmDB;
     private ListView alarmListView;
-    private CheckBox AlarmSwitch;
 
     public static final int CODE_CREATE_ALARM = 1;
     public static final int CODE_SET_ALARM = 2;
@@ -84,9 +84,6 @@ public class ScheduleActivity extends AppCompatActivity {
                 Intent intent_modifyAlarm = new Intent(ScheduleActivity.this, SetAlarmActivity.class);
                 intent_modifyAlarm.putExtra("Set_AlarmData", position);
                 startActivityForResult(intent_modifyAlarm, CODE_SET_ALARM);
-
-                AlarmSwitch = (CheckBox)findViewById(R.id.alarm_switch);
-
             }
         });
 
@@ -132,6 +129,8 @@ public class ScheduleActivity extends AppCompatActivity {
 
             }
         });
+
+        LocalUtil.reopenAlarmService(this, AlarmList);
     }
 
     // 此处配合上面的长按list，选择不同的选项产生不同的反馈

@@ -34,7 +34,6 @@ public class SelectAlarmMusicActivity extends AppCompatActivity {
     private ListView musicListView = null;
 
     private MediaPlayer mediaPlayer = null;
-    private AssetManager assetManager = null;
 
     private RadioButton SelectDot;
     private String SelectedMusic = null;
@@ -92,11 +91,15 @@ public class SelectAlarmMusicActivity extends AppCompatActivity {
                     return;
                 }
 
+                mediaPlayer = new MediaPlayer();
                 for(String keyword : keywords) {
                     if(("." + nameSegments[nameSegments.length - 1]).equals(keyword)) {
-                        AssetFileDescriptor AlarmMusicDescriptor;
                         SelectedMusic = musicName;
 
+                        LocalUtil.playAlarmMusic(mediaPlayer, SelectAlarmMusicActivity.this, SelectedMusic);
+                        break;
+
+                        /*
                         mediaPlayer.reset();
 
                         try {
@@ -117,7 +120,7 @@ public class SelectAlarmMusicActivity extends AppCompatActivity {
                             Log.getStackTraceString(e);
                             return;
                         }
-
+                        */
                     }
                 }
 

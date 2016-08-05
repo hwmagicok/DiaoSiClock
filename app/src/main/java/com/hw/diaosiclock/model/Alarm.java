@@ -35,8 +35,11 @@ public class Alarm implements Parcelable, Cloneable {
     private boolean isShock = true;
     private String AlarmName = null;
     private int Alarm_interval;
-    //华为专属功能，查看是否为月末周六
-    private boolean isLastSaturday = false;
+    // 华为专属功能，查看是否为月末周六
+    // month只是用来标记月末周六是哪个月的，和Calendar中的各个月参数表示一致
+    // LastSaturdayDate如果为0则是不开启月末周六功能，否则就是开启
+    private int month = 0;
+    private int LastSaturdayDate = 0;
     //是否为24小时制，这个一定要先于时间设置
     private static boolean is24HourFormat;
 
@@ -61,7 +64,8 @@ public class Alarm implements Parcelable, Cloneable {
         setShock(in.readInt() == 1);
         setAlarmName(in.readString());
         setAlarm_interval(in.readInt());
-        setLastSaturday(in.readInt() == 1);
+        setMonthOfLastSaturday(in.readInt());
+        setLastSaturday(in.readInt());
         set24HourFormat(in.readInt() == 1);
     }
 
@@ -177,8 +181,12 @@ public class Alarm implements Parcelable, Cloneable {
         music = musicName;
     }
 
-    public void setLastSaturday(boolean flag) {
-        isLastSaturday = flag;
+    public void setMonthOfLastSaturday(int month) {
+        this.month = month;
+    }
+
+    public void setLastSaturday(int date) {
+        LastSaturdayDate = date;
     }
 
     public void setAlarmSwitch(boolean status) {
@@ -241,8 +249,12 @@ public class Alarm implements Parcelable, Cloneable {
         return music;
     }
 
-    public boolean getLastSaturday() {
-        return isLastSaturday;
+    public int getMonthOfLastSaturday() {
+        return month;
+    }
+
+    public int getLastSaturday() {
+        return LastSaturdayDate;
     }
 
     public boolean get24HourFormat() {
@@ -301,7 +313,8 @@ public class Alarm implements Parcelable, Cloneable {
         isShock = alarm.getShockStatus();
         AlarmName = alarm.getAlarmName();
         Alarm_interval = alarm.getAlarm_interval();
-        isLastSaturday = alarm.getLastSaturday();
+        month = alarm.getMonthOfLastSaturday();
+        LastSaturdayDate = alarm.getLastSaturday();
         is24HourFormat = alarm.get24HourFormat();
     }
 
@@ -332,7 +345,8 @@ public class Alarm implements Parcelable, Cloneable {
         dest.writeInt(isShock ? 1 : 0);
         dest.writeString(AlarmName);
         dest.writeInt(Alarm_interval);
-        dest.writeInt(isLastSaturday ? 1 : 0);
+        dest.writeInt(month);
+        dest.writeInt(LastSaturdayDate);
         dest.writeInt(is24HourFormat ? 1 : 0);
     }
 
