@@ -35,7 +35,7 @@ public class AlarmMusicUtil {
 
                 //看文件名中是否包含关键词，是的话就加进list中
                 for(int i = 0; i < keywords.length; i++) {
-                    if(fileName.contains(keywords[i])) {
+                    if(CompareMusicExtension(fileName, keywords[i])) {
                         list.add(fileName);
                         break;
                     }
@@ -43,7 +43,7 @@ public class AlarmMusicUtil {
             }
         }catch (Exception e) {
             Log.e(ERRTAG, "SearchAssetsMusic error");
-            Log.e(ERRTAG, Log.getStackTraceString(e));
+            Log.getStackTraceString(e);
         }
 
     }
@@ -88,5 +88,26 @@ public class AlarmMusicUtil {
                 }
             }
         }
+    }
+
+    public static boolean CompareMusicExtension(final String MusicName, final String KeyWord) {
+        if(null == MusicName || null == KeyWord) {
+            return false;
+        }
+        int MusicNameLen = MusicName.length();
+        int KeyWordLen = KeyWord.length();
+
+        if(MusicNameLen <= KeyWordLen) {
+            return false;
+        }
+
+        int i = 1;
+        while(i <= KeyWordLen) {
+            if(MusicName.charAt(MusicNameLen - i) != KeyWord.charAt(KeyWordLen - i)) {
+                return false;
+            }
+            i++;
+        }
+        return true;
     }
 }

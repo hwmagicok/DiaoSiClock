@@ -1,6 +1,5 @@
 package com.hw.diaosiclock.activity;
 
-import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -12,11 +11,8 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.View;
-import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Window;
 import android.widget.AdapterView;
-import android.widget.CheckBox;
 import android.widget.ListView;
 
 import com.hw.diaosiclock.R;
@@ -26,7 +22,6 @@ import com.hw.diaosiclock.model.AlarmDB;
 import com.hw.diaosiclock.util.LocalUtil;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 
 
 public class ScheduleActivity extends AppCompatActivity {

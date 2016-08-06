@@ -3,12 +3,8 @@ package com.hw.diaosiclock.activity;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.AssetFileDescriptor;
-import android.content.res.AssetManager;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Vibrator;
@@ -19,11 +15,13 @@ import android.view.WindowManager;
 import com.hw.diaosiclock.R;
 import com.hw.diaosiclock.model.Alarm;
 import com.hw.diaosiclock.model.AlarmBackgroundService;
+import com.hw.diaosiclock.model.AlarmDB;
 import com.hw.diaosiclock.util.LocalUtil;
 
-import java.util.Calendar;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -41,6 +39,7 @@ public class AlarmOnTimeActivity extends Activity {
     private PendingIntent pi = null;
     private MediaPlayer mediaPlayer = null;
     private Vibrator vibrator = null;
+    AlarmDB db = null;
     private Alarm alarm = null;
 
     Timer timer = null;
@@ -72,53 +71,32 @@ public class AlarmOnTimeActivity extends Activity {
         Log.e(ERRTAG, "alarm id: " + String.valueOf(alarm.getAlarmID())
                         + " time: " + alarm.getTime());
 
+        SimpleDateFormat curTime = new SimpleDateFormat("HH:mm", Locale.CHINA);
+
         /* start: 设置1分钟的Timer */
         timer = new Timer();
         timerTask = new AlarmTimerTask();
         timer.schedule(timerTask, 1000*60);
         /* end: 设置1分钟的Timer */
 
+        db = AlarmDB.getInstance(this);
         alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
 
         // 播放闹铃音乐。也不知道这个地是不是该开个线程
         mediaPlayer = new MediaPlayer();
-        mediaPlayer.setLooping(true);
-        LocalUtil.playAlarmMusic(mediaPlayer, AlarmOnTimeActivity.this, alarm);
-        /*
-        try {
-            AssetFileDescriptor AlarmMusicDescriptor;
-            AssetManager assetManager = getAssets();
-
-            if(null == mediaPlayer) {
-                mediaPlayer = new MediaPlayer();
-                mediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
-            }
-            mediaPlayer.reset();
-
-            AlarmMusicDescriptor = assetManager.openFd(LocalUtil.AlarmMusicPath + "/" + alarm.getAlarmMusic());
-            mediaPlayer.setLooping(true);
-            mediaPlayer.setDataSource(AlarmMusicDescriptor.getFileDescriptor(),
-                    AlarmMusicDescriptor.getStartOffset(), AlarmMusicDescriptor.getLength());
-            mediaPlayer.setVolume(alarm.getVolume(), alarm.getVolume());
-            AlarmMusicDescriptor.close();
-            mediaPlayer.prepare();
-            mediaPlayer.start();
-        }catch (Exception e) {
-            Log.e(ERRTAG, "fail to play the alarm music");
-            Log.getStackTraceString(e);
-        }
-        */
+        LocalUtil.playAlarmMusic(mediaPlayer, AlarmOnTimeActivity.this, alarm, true);
 
         // 打开震动
         if(alarm.getShockStatus()) {
             vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-            long[] vibratorPattern = {1000, 2000};
-            vibrator.vibrate(vibratorPattern, 1);
+            long[] vibratorPattern = {1000, 2000, 1000, 2000};
+            vibrator.vibrate(vibratorPattern, 0);
         }
 
         alarmOnTime = new AlertDialog.Builder(this)
                 .setCancelable(false)
-                .setMessage("闹钟时间到：" + alarm.getTime() + "\n")
+                .setTitle(alarm.getTime() + "的闹钟")
+                .setMessage("当前时间：" + curTime.format(new Date()) + "\n")
                 .setNegativeButton("推迟", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -135,6 +113,12 @@ public class AlarmOnTimeActivity extends Activity {
                             setRepeatTime(alarm.getAlarmID());
                             SendIntervalAlarmBroadcast();
                         }
+                        if(!alarm.isRepeatAlarm()) {
+                            if(0 == alarm.getAlarm_interval() || getRepeatTime(alarm.getAlarmID()) == 3) {
+                                alarm.setAlarmSwitch(false);
+                                db.updateSpecificAlarm(alarm);
+                            }
+                        }
                         dialog.dismiss();
                         finish();
                     }
@@ -147,6 +131,11 @@ public class AlarmOnTimeActivity extends Activity {
                             vibrator.cancel();
                         }
                         timer.cancel();
+
+                        if(!alarm.isRepeatAlarm()) {
+                            alarm.setAlarmSwitch(false);
+                            db.updateSpecificAlarm(alarm);
+                        }
 
                         SendNextAlarmService();
                         dialog.dismiss();
@@ -168,18 +157,28 @@ public class AlarmOnTimeActivity extends Activity {
 
             if(0 != alarm.getAlarm_interval()) {
                 if(3 == getRepeatTime(alarm.getAlarmID())) {
-                    SendNextAlarmService();
+                    if(alarm.isRepeatAlarm()) {
+                        SendNextAlarmService();
+                    }else {
+                        alarm.setAlarmSwitch(false);
+                        db.updateSpecificAlarm(alarm);
+                    }
                 } else {
+                    // Todo to delete
+                    Log.e(ERRTAG, "alarm id[" + alarm.getAlarmID() + "] repeat time[" + getRepeatTime(alarm.getAlarmID()) + "]");
+                    setRepeatTime(alarm.getAlarmID());
                     SendIntervalAlarmBroadcast();
                 }
             }else {
-                SendNextAlarmService();
+                if(alarm.isRepeatAlarm()) {
+                    SendNextAlarmService();
+                }else {
+                    alarm.setAlarmSwitch(false);
+                    db.updateSpecificAlarm(alarm);
+                }
             }
-
             finish();
-
         }
-
     }
 
     // 取出闹钟已重复的次数，最大重复次数为3
@@ -209,7 +208,6 @@ public class AlarmOnTimeActivity extends Activity {
         if(null == intent) {
             intent = new Intent("com.hw.diaosiclock.EXECUTE_CLOCK");
         }
-        //intent.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm);
         intent.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm.getAlarmID());
 
         pi = PendingIntent.getBroadcast(AlarmOnTimeActivity.this, alarm.getAlarmID(), intent, 0);
@@ -236,7 +234,6 @@ public class AlarmOnTimeActivity extends Activity {
         mediaPlayer.release();
 
         StartServiceIntent = new Intent(AlarmOnTimeActivity.this, AlarmBackgroundService.class);
-        //StartServiceIntent.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm);
         StartServiceIntent.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm.getAlarmID());
         startService(StartServiceIntent);
     }

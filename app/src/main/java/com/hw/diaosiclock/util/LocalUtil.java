@@ -82,53 +82,23 @@ public class LocalUtil {
     }
 
     // 使用alarm中的音乐进行播放
-    public static boolean playAlarmMusic(MediaPlayer mediaPlayer, Context context, Alarm alarm) {
-
-        if(null == context || null == alarm) {
-            Log.e(ERRTAG, "context or alarm is null");
-            return false;
-        }
-
-        boolean bRet = true;
-        if(null == mediaPlayer) {
-            mediaPlayer = new MediaPlayer();
-        }
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
-        mediaPlayer.reset();
-
-        try {
-            AssetFileDescriptor AlarmMusicDescriptor;
-            AssetManager assetManager = context.getAssets();
-            String AlarmMusicName;
-
-            AlarmMusicName = alarm.getAlarmMusic();
-
-            AlarmMusicDescriptor = assetManager.openFd(AlarmMusicPath + "/" + AlarmMusicName);
-            //mediaPlayer.setLooping(true);
-            mediaPlayer.setDataSource(AlarmMusicDescriptor.getFileDescriptor(),
-                    AlarmMusicDescriptor.getStartOffset(), AlarmMusicDescriptor.getLength());
-            mediaPlayer.setVolume(alarm.getVolume(), alarm.getVolume());
-            AlarmMusicDescriptor.close();
-            mediaPlayer.prepare();
-            mediaPlayer.start();
-        }catch (Exception e) {
-            bRet = false;
-            Log.e(ERRTAG, "playing alarm music occurs error");
-            Log.getStackTraceString(e);
-        }finally {
-            return bRet;
-        }
-
+    public static boolean playAlarmMusic(MediaPlayer mediaPlayer, Context context, Alarm alarm, Boolean isLoop) {
+        String MusicName = alarm.getAlarmMusic();
+        return playAlarmMusic(mediaPlayer, context, MusicName, isLoop);
     }
 
     // 使用music name代表的音乐进行播放，上一个方法的重载
-    public static boolean playAlarmMusic(MediaPlayer mediaPlayer, Context context, String MusicName) {
+    public static boolean playAlarmMusic(MediaPlayer mediaPlayer, Context context, String MusicName, Boolean isLoop) {
 
-        if(null == context || null == MusicName) {
-            Log.e(ERRTAG, "context or music name is null");
+        if(null == context) {
+            Log.e(ERRTAG, "context is null");
             return false;
         }
 
+        // 若Alarm没有设置闹铃音乐（默认），就播放这个
+        if(null == MusicName) {
+            MusicName = "alarm.ogg";
+        }
         boolean bRet = true;
         if(null == mediaPlayer) {
             mediaPlayer = new MediaPlayer();
@@ -145,7 +115,9 @@ public class LocalUtil {
             int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM);
 
             AlarmMusicDescriptor = assetManager.openFd(AlarmMusicPath + "/" + AlarmMusicName);
-            //mediaPlayer.setLooping(true);
+            if(isLoop) {
+                mediaPlayer.setLooping(true);
+            }
             mediaPlayer.setDataSource(AlarmMusicDescriptor.getFileDescriptor(),
                     AlarmMusicDescriptor.getStartOffset(), AlarmMusicDescriptor.getLength());
             mediaPlayer.setVolume(maxVolume/2, maxVolume/2);

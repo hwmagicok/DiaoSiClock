@@ -11,8 +11,6 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.hw.diaosiclock.activity.AlarmOnTimeActivity;
-import com.hw.diaosiclock.activity.SetAlarmActivity;
 import com.hw.diaosiclock.util.LocalUtil;
 
 import java.util.Calendar;

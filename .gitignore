@@ -6,3 +6,7 @@
 .DS_Store
 /build
 /captures
+
+
+# 从下面开始是自己手动添加的
+*.apk

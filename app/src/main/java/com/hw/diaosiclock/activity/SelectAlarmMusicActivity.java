@@ -1,9 +1,6 @@
 package com.hw.diaosiclock.activity;
 
 import android.content.Intent;
-import android.content.res.AssetFileDescriptor;
-import android.content.res.AssetManager;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -93,34 +90,10 @@ public class SelectAlarmMusicActivity extends AppCompatActivity {
 
                 mediaPlayer = new MediaPlayer();
                 for(String keyword : keywords) {
-                    if(("." + nameSegments[nameSegments.length - 1]).equals(keyword)) {
+                    if(AlarmMusicUtil.CompareMusicExtension(musicName, keyword)) {
                         SelectedMusic = musicName;
-
-                        LocalUtil.playAlarmMusic(mediaPlayer, SelectAlarmMusicActivity.this, SelectedMusic);
+                        LocalUtil.playAlarmMusic(mediaPlayer, SelectAlarmMusicActivity.this, SelectedMusic, false);
                         break;
-
-                        /*
-                        mediaPlayer.reset();
-
-                        try {
-                            mediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
-                            assetManager = getAssets();
-                            AlarmMusicDescriptor = assetManager.openFd(LocalUtil.AlarmMusicPath + "/" + musicName);
-                            mediaPlayer.setDataSource(AlarmMusicDescriptor.getFileDescriptor(),
-                                    AlarmMusicDescriptor.getStartOffset(), AlarmMusicDescriptor.getLength());
-
-                            //这个地妥协了一下，并没有使用该Alarm设置的铃声大小，而是取了一个值
-                            mediaPlayer.setVolume(60, 60);
-                            AlarmMusicDescriptor.close();
-                            mediaPlayer.prepare();
-                            mediaPlayer.start();
-                            break;
-                        }catch (Exception e) {
-                            Log.e(ERRTAG, "Err on playing alarm music");
-                            Log.getStackTraceString(e);
-                            return;
-                        }
-                        */
                     }
                 }
 
@@ -135,6 +108,16 @@ public class SelectAlarmMusicActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(null != mediaPlayer) {
+                    mediaPlayer.stop();
+                    mediaPlayer.release();
+                }
+
+                if(null != SelectedMusic) {
+                    Intent intent = new Intent();
+                    intent.putExtra("return_musicname", SelectedMusic);
+                    setResult(RESULT_OK, intent);
+                }
                 finish();
             }
         });
@@ -142,8 +125,11 @@ public class SelectAlarmMusicActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        mediaPlayer.stop();
-        mediaPlayer.release();
+        if(null != mediaPlayer) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+        }
+
         if(null != SelectedMusic) {
             Intent intent = new Intent();
             intent.putExtra("return_musicname", SelectedMusic);
@@ -152,9 +138,10 @@ public class SelectAlarmMusicActivity extends AppCompatActivity {
         finish();
     }
 
-
     public static int getDotLocation() {
         return DotPosition;
     }
+
+
 
 }

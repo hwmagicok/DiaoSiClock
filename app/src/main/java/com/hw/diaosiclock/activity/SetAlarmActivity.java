@@ -67,6 +67,7 @@ public class SetAlarmActivity extends AppCompatActivity {
     private TextView alarm_LastSaturdayDate = null;
 
     private LinearLayout layout_time = null;
+    private LinearLayout layout_music = null;
     private LinearLayout layout_interval = null;
     private LinearLayout layout_repeat = null;
     private RelativeLayout layout_isLastSaturday = null;
@@ -231,7 +232,8 @@ public class SetAlarmActivity extends AppCompatActivity {
         });
 
         // 设置闹钟铃声
-        alarm_music.setOnClickListener(new View.OnClickListener() {
+        layout_music = (LinearLayout)findViewById(R.id.layout_music);
+        layout_music.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(SetAlarmActivity.this, SelectAlarmMusicActivity.class);
@@ -272,7 +274,7 @@ public class SetAlarmActivity extends AppCompatActivity {
                 }else {
                     mediaPlayer.stop();
                 }
-                LocalUtil.playAlarmMusic(mediaPlayer, SetAlarmActivity.this, alarm);
+                LocalUtil.playAlarmMusic(mediaPlayer, SetAlarmActivity.this, alarm, false);
                 alarm.setVolume(seekBar.getProgress());
             }
         });
