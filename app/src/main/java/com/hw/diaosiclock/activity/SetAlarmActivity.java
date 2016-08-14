@@ -30,6 +30,7 @@ import com.hw.diaosiclock.model.AlarmDB;
 import com.hw.diaosiclock.util.AlarmCallbackListener;
 import com.hw.diaosiclock.util.LocalUtil;
 
+import java.security.PublicKey;
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -274,8 +275,16 @@ public class SetAlarmActivity extends AppCompatActivity {
                 }else {
                     mediaPlayer.stop();
                 }
-                LocalUtil.playAlarmMusic(mediaPlayer, SetAlarmActivity.this, alarm, false);
+
+                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mp) {
+                        mediaPlayer.stop();
+                    }
+                });
+
                 alarm.setVolume(seekBar.getProgress());
+                LocalUtil.playAlarmMusic(mediaPlayer, SetAlarmActivity.this, alarm, false);
             }
         });
 
@@ -455,6 +464,18 @@ public class SetAlarmActivity extends AppCompatActivity {
         });
 
     }
+
+    /*
+    @Override
+    public void onBackPressed() {
+        if(null != mediaPlayer) {
+            if(mediaPlayer.isPlaying()) {
+                mediaPlayer.stop();
+            }
+            mediaPlayer.release();
+        }
+    }
+    */
 
     //通过Alarm中数据设置SetAlarmActivity界面的显示
     protected void SetTimeText(Alarm alarm) {

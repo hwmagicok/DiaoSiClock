@@ -23,16 +23,14 @@ public class BootCompleteReceiver extends BroadcastReceiver {
             Log.getStackTraceString(e);
         }
 
-        ArrayList<Alarm> list = new ArrayList<>();
         AlarmDB db = AlarmDB.getInstance(context);
         Cursor cursor = db.queryAllAlarm();
 
         if(cursor.moveToFirst()) {
             do {
-                list.add(db.getAlarmByCursor(cursor));
+                LocalUtil.reopenAlarmService(context, db.getAlarmByCursor(cursor));
             }while (cursor.moveToNext());
         }
 
-        LocalUtil.reopenAlarmService(context, list);
     }
 }

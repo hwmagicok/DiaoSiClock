@@ -15,13 +15,13 @@ public class AlarmReceiver extends BroadcastReceiver {
     public static final String ERRTAG = "AlarmReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.e(ERRTAG, "AlarmReceiver on receive");
         Intent i = new Intent(context, AlarmOnTimeActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         Alarm alarm = intent.getParcelableExtra(LocalUtil.TAG_EXECUTE_ALARM);
         if(null == alarm) {
             Log.e(ERRTAG, "alarm is null");
         }else {
+            Log.e(ERRTAG, "AlarmReceiver on receive alarm id[" + String.valueOf(alarm.getAlarmID()) + "]");
             i.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm);
         }
 

@@ -25,6 +25,7 @@ public class LocalUtil {
     public static final String TAG_SET_MUSIC = "SetAlarmMusic";
     public static final int TAG_ONETIME_ALARM = 1;
     public static final int TAG_REPEAT_ALARM = 2;
+    public static final int FLAG_REOPEN_SERVICE = 100;
 
     public static final String AlarmMusicPath = "Alarm";
 
@@ -84,7 +85,46 @@ public class LocalUtil {
     // 使用alarm中的音乐进行播放
     public static boolean playAlarmMusic(MediaPlayer mediaPlayer, Context context, Alarm alarm, Boolean isLoop) {
         String MusicName = alarm.getAlarmMusic();
-        return playAlarmMusic(mediaPlayer, context, MusicName, isLoop);
+        if(null == context) {
+            Log.e(ERRTAG, "context is null");
+            return false;
+        }
+
+        // 若Alarm没有设置闹铃音乐（默认），就播放这个
+        if(null == MusicName) {
+            MusicName = "alarm.ogg";
+        }
+        boolean bRet = true;
+        if(null == mediaPlayer) {
+            mediaPlayer = new MediaPlayer();
+        }
+        //mediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
+        mediaPlayer.reset();
+
+        try {
+            AssetFileDescriptor AlarmMusicDescriptor;
+            AssetManager assetManager = context.getAssets();
+
+            AlarmMusicDescriptor = assetManager.openFd(AlarmMusicPath + "/" + MusicName);
+            if(isLoop) {
+                mediaPlayer.setLooping(true);
+            }else {
+                mediaPlayer.setLooping(false);
+            }
+            mediaPlayer.setDataSource(AlarmMusicDescriptor.getFileDescriptor(),
+                    AlarmMusicDescriptor.getStartOffset(), AlarmMusicDescriptor.getLength());
+            mediaPlayer.setVolume(alarm.getVolume(), alarm.getVolume());
+            AlarmMusicDescriptor.close();
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+        }catch (Exception e) {
+            bRet = false;
+            Log.e(ERRTAG, "playing alarm music occurs error");
+            Log.getStackTraceString(e);
+        }finally {
+            return bRet;
+        }
+
     }
 
     // 使用music name代表的音乐进行播放，上一个方法的重载
@@ -103,7 +143,7 @@ public class LocalUtil {
         if(null == mediaPlayer) {
             mediaPlayer = new MediaPlayer();
         }
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
+        //mediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
         mediaPlayer.reset();
 
         try {
@@ -135,20 +175,16 @@ public class LocalUtil {
     }
 
     // 重启闹钟服务，应用于开机自启或是进程被关后重新打开应用
-    public static void reopenAlarmService(Context context, ArrayList<Alarm> list) {
-        if(null == context || null == list) {
-            Log.e(ERRTAG, "context or list is null");
+    public synchronized static void reopenAlarmService(Context context, Alarm alarm) {
+        if(null == context || null == alarm) {
+            Log.e(ERRTAG, "context or alarm is null");
             return;
         }
 
-        for(Alarm alarm : list) {
-            Intent intent = new Intent(context, AlarmBackgroundService.class);
-            intent.putExtra(TAG_EXECUTE_ALARM, alarm.getAlarmID());
-            PendingIntent pi = PendingIntent.getService(context, alarm.getAlarmID(), intent, PendingIntent.FLAG_NO_CREATE);
-            if(null == pi) {
-                context.startService(intent);
-            }
-        }
+        Intent intent = new Intent(context, AlarmBackgroundService.class);
+        intent.putExtra(TAG_EXECUTE_ALARM, alarm.getAlarmID());
+        intent.addFlags(FLAG_REOPEN_SERVICE);
+        context.startService(intent);
     }
 
 }

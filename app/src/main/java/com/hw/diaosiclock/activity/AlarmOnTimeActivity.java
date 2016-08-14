@@ -112,13 +112,23 @@ public class AlarmOnTimeActivity extends Activity {
                         if (alarm.getAlarm_interval() != 0 && getRepeatTime(alarm.getAlarmID()) < 3) {
                             setRepeatTime(alarm.getAlarmID());
                             SendIntervalAlarmBroadcast();
-                        }
-                        if(!alarm.isRepeatAlarm()) {
-                            if(0 == alarm.getAlarm_interval() || getRepeatTime(alarm.getAlarmID()) == 3) {
-                                alarm.setAlarmSwitch(false);
-                                db.updateSpecificAlarm(alarm);
+                        } else {
+                            if(!alarm.isRepeatAlarm()) {
+                                if(0 == alarm.getAlarm_interval() || getRepeatTime(alarm.getAlarmID()) == 3) {
+                                    if(repeatTimeMap.containsKey(alarm.getAlarmID())) {
+                                        repeatTimeMap.remove(alarm.getAlarmID());
+                                    }
+                                    alarm.setAlarmSwitch(false);
+                                    db.updateSpecificAlarm(alarm);
+                                }
+                            }else {
+                                if(getRepeatTime(alarm.getAlarmID()) == 3) {
+                                    repeatTimeMap.remove(alarm.getAlarmID());
+                                }
+                                SendNextAlarmService();
                             }
                         }
+
                         dialog.dismiss();
                         finish();
                     }
@@ -160,6 +170,7 @@ public class AlarmOnTimeActivity extends Activity {
                     if(alarm.isRepeatAlarm()) {
                         SendNextAlarmService();
                     }else {
+                        repeatTimeMap.remove(alarm.getAlarmID());
                         alarm.setAlarmSwitch(false);
                         db.updateSpecificAlarm(alarm);
                     }

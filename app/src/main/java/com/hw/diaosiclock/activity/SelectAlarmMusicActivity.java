@@ -88,7 +88,11 @@ public class SelectAlarmMusicActivity extends AppCompatActivity {
                     return;
                 }
 
-                mediaPlayer = new MediaPlayer();
+                //mediaPlayer = new MediaPlayer();
+                if(mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+                }
+                mediaPlayer.reset();
                 for(String keyword : keywords) {
                     if(AlarmMusicUtil.CompareMusicExtension(musicName, keyword)) {
                         SelectedMusic = musicName;
@@ -126,7 +130,9 @@ public class SelectAlarmMusicActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if(null != mediaPlayer) {
-            mediaPlayer.stop();
+            if(mediaPlayer.isPlaying()) {
+                mediaPlayer.stop();
+            }
             mediaPlayer.release();
         }
 

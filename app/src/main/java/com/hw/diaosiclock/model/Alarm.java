@@ -13,6 +13,7 @@ import com.hw.diaosiclock.R;
 import com.hw.diaosiclock.activity.SetAlarmActivity;
 import com.hw.diaosiclock.util.AlarmCallbackListener;
 
+import java.util.Arrays;
 import java.util.Calendar;
 
 /**
@@ -24,7 +25,7 @@ public class Alarm implements Parcelable, Cloneable {
         取值唯一, 只用来取值使用 */
     private int AlarmID;
     //闹钟开关
-    private boolean AlarmSwitch = false; //// TODO: 2016/7/16 这个元素需要在DB里面加上，有用 
+    private boolean AlarmSwitch = false;
     //小时只以24小时制进行存储
     private int hour;
     private int minute;
@@ -282,6 +283,29 @@ public class Alarm implements Parcelable, Cloneable {
             str = getTime();
         }
         return str;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(null == obj) {
+            return false;
+        }
+
+        boolean bRet = false;
+
+        if(obj instanceof Alarm) {
+            Alarm alarm = (Alarm)obj;
+            if(AlarmID == alarm.getAlarmID() && AlarmSwitch == alarm.getAlarmOnOrOff()
+                && hour == alarm.getTimeHour() && minute == alarm.getTimeMinute()
+                && Arrays.equals(week, alarm.getWeekStatus()) && music.equals(alarm.getAlarmMusic())
+                && volume == alarm.getVolume() && isShock == alarm.getShockStatus()
+                && AlarmName.equals(alarm.getAlarmName()) && Alarm_interval == alarm.getAlarm_interval()
+                && month == alarm.getMonthOfLastSaturday() && LastSaturdayDate == alarm.getLastSaturday()
+                && is24HourFormat == alarm.get24HourFormat()) {
+                bRet = true;
+            }
+        }
+        return bRet;
     }
 
     @Override

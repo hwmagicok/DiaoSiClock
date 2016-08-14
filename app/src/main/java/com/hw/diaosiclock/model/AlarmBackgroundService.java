@@ -22,7 +22,6 @@ import java.util.TimeZone;
 public class AlarmBackgroundService extends Service {
     public static final String ERRTAG = "AlarmBackgroundService";
     private AlarmManager alarmManager = null;
-    private Alarm alarm = null;
     private String triggerTimeStr = null;
     @Override
     public IBinder onBind(Intent intent) {
@@ -50,7 +49,9 @@ public class AlarmBackgroundService extends Service {
                     Log.e(ERRTAG, "alarm id is wrong");
                     return;
                 }
-                //Alarm alarm = intent.getParcelableExtra(LocalUtil.TAG_EXECUTE_ALARM);
+
+                // alarm在此处一定要作为局部变量，否则极有可能造成线程不安全
+                Alarm alarm = null;
                 Cursor cursor = db.querySpecificAlarm(AlarmId);
                 if(cursor.moveToFirst()) {
                     alarm = db.getAlarmByCursor(cursor);
@@ -65,7 +66,20 @@ public class AlarmBackgroundService extends Service {
                 Intent AlarmOnTime = new Intent("com.hw.diaosiclock.EXECUTE_CLOCK");
                 AlarmOnTime.putExtra(LocalUtil.TAG_EXECUTE_ALARM, alarm);
                 PendingIntent pi = PendingIntent.getBroadcast(AlarmBackgroundService.this, alarm.getAlarmID(),
-                                                    AlarmOnTime, PendingIntent.FLAG_UPDATE_CURRENT);
+                        AlarmOnTime, PendingIntent.FLAG_NO_CREATE);
+
+                if(LocalUtil.FLAG_REOPEN_SERVICE == intent.getFlags()) {
+                    if(null == pi) {
+                        Log.e(ERRTAG, alarm.getAlarmID() + " intent is not exist");
+                        pi = PendingIntent.getBroadcast(AlarmBackgroundService.this, alarm.getAlarmID(),
+                                AlarmOnTime, PendingIntent.FLAG_UPDATE_CURRENT);
+                    } else {
+                        return;
+                    }
+                } else {
+                    pi = PendingIntent.getBroadcast(AlarmBackgroundService.this, alarm.getAlarmID(),
+                            AlarmOnTime, PendingIntent.FLAG_UPDATE_CURRENT);
+                }
 
                 alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
 
@@ -77,7 +91,6 @@ public class AlarmBackgroundService extends Service {
                 int[] weekStatus = alarm.getWeekStatus();
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTimeZone(TimeZone.getTimeZone("GMT+8:00"));
-                //long curTime = calendar.getTimeInMillis();
                 long curTime = System.currentTimeMillis();
                 long triggerTime = 0;
 
@@ -205,7 +218,9 @@ public class AlarmBackgroundService extends Service {
                     });
                     /* end:此处为了在设置后显示出下一个闹钟距今还有多久 */
 
-                    Log.e(ERRTAG, "hour:  " + String.valueOf(hour)
+                    Log.e(ERRTAG, "alarm id[" + String.valueOf(alarm.getAlarmID()) + "]"
+                                    + " day: " + String.valueOf(day)
+                                    + " hour: " + String.valueOf(hour)
                                     + " min: " + String.valueOf(minute)
                                     + " sec: " + String.valueOf(second));
                     }

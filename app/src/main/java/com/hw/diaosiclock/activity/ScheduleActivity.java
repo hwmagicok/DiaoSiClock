@@ -125,7 +125,9 @@ public class ScheduleActivity extends AppCompatActivity {
             }
         });
 
-        LocalUtil.reopenAlarmService(this, AlarmList);
+        for(Alarm tmpAlarm : AlarmList) {
+            LocalUtil.reopenAlarmService(this, tmpAlarm);
+        }
     }
 
     // 此处配合上面的长按list，选择不同的选项产生不同的反馈
