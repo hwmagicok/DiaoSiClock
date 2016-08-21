@@ -8,8 +8,8 @@
 本app在豌豆荚上也已上线：http://www.wandoujia.com/apps/com.hw.diaosiclock
 
 软件界面截图如下：
-![image](https://github.com/hwmagicok/hwClock/tree/master/preview_pic/hwclock1.jpg)
-![image](https://github.com/hwmagicok/hwClock/tree/master/preview_pic/hwclock2.jpg)
-![image](https://github.com/hwmagicok/hwClock/tree/master/preview_pic/hwclock3.jpg)
-![image](https://github.com/hwmagicok/hwClock/tree/master/preview_pic/hwclock4.jpg)
-![image](https://github.com/hwmagicok/hwClock/tree/master/preview_pic/hwclock5.jpg)
+![image](https://github.com/hwmagicok/hwClock/preview_pic/hwclock1.jpg)
+![image](https://github.com/hwmagicok/hwClock/preview_pic/hwclock2.jpg)
+![image](https://github.com/hwmagicok/hwClock/preview_pic/hwclock3.jpg)
+![image](https://github.com/hwmagicok/hwClock/preview_pic/hwclock4.jpg)
+![image](https://github.com/hwmagicok/hwClock/preview_pic/hwclock5.jpg)
