@@ -31,6 +31,7 @@ public class AlarmDB {
         return alarmDB;
     }
 
+    /* start: 查询闹铃相关 */
     public Cursor queryAllAlarm() {
         if(null == db){
             Log.e(ERRTAG + "queryAllAlarm", "db is null");
@@ -222,4 +223,51 @@ public class AlarmDB {
         cursor.close();
         return id;
     }
+
+    /* end:查询闹铃相关 */
+
+    /* start:查询地理位置相关 */
+    public void saveCountryInfo(Country country) {
+        if(null == country) {
+            Log.e(ERRTAG, "country info is null");
+            return;
+        }
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("code", country.getCode());
+        contentValues.put("pinyin", country.getPinyin());
+        contentValues.put("country", country.getCountryName());
+        contentValues.put("city", country.getCityName());
+        contentValues.put("province", country.getProvinceName());
+
+        db.insert("Location", null, contentValues);
+    }
+
+    public Cursor queryAllLocation() {
+        Cursor cursor = db.rawQuery("select * from Location", null);
+        return cursor;
+    }
+
+    public Cursor querySpecificCountry(String str) {
+        if(null == str) {
+            return null;
+        }
+
+        Cursor cursor;
+        if(str.charAt(0) >= 'A' && str.charAt(0) <= 'Z') {
+            str = str.toLowerCase();
+        }
+
+        if(str.charAt(0) >= 'a' && str.charAt(0) <= 'z') {
+            cursor = db.rawQuery("select * from Location where pinyin like ?",
+                    new String[] {"%" + str + "%"});
+        }else {
+            cursor = db.rawQuery("select * from Location where country like ?",
+                    new String[] {"%" + str + "%"});
+        }
+        return cursor;
+    }
+
+
+    /* end:查询地理位置相关 */
 }

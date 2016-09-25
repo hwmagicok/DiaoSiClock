@@ -3,6 +3,7 @@
     package="com.hw.diaosiclock">
 
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <application
@@ -13,7 +14,8 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".activity.WelcomeActivity">
+            android:name=".activity.WelcomeActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -38,6 +40,14 @@
             android:name=".activity.AlarmOnTimeActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.Transparent" />
+
+        <activity
+            android:name=".activity.WeatherDetailActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <activity
+            android:name=".activity.SelectCountryActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <service android:name=".model.AlarmBackgroundService" />
         <receiver android:name=".model.AlarmReceiver" >

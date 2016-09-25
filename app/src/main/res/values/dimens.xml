@@ -9,4 +9,5 @@
     <dimen name="contextTextSize">15sp</dimen>
     <dimen name="title_marginToTop">15dp</dimen>
     <dimen name="content_marginToTop">5dp</dimen>
+    <dimen name="detailTextSize">20sp</dimen>
 </resources>

@@ -30,11 +30,8 @@ import com.hw.diaosiclock.model.AlarmDB;
 import com.hw.diaosiclock.util.AlarmCallbackListener;
 import com.hw.diaosiclock.util.LocalUtil;
 
-import java.security.PublicKey;
 import java.util.Calendar;
 import java.util.TimeZone;
-
-
 /**
  * Created by hw on 2016/5/5.
  */

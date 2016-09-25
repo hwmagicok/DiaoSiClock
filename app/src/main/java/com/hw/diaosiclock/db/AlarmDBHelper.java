@@ -28,12 +28,21 @@ public class AlarmDBHelper extends SQLiteOpenHelper {
             "last_saturday integer, " +
             "TimeFormat24H integer)";
 
+    public static String CREATE_LOCATION = "create table Location (" +
+            "id integer primary key autoincrement," +
+            "code varchar(20)," +
+            "pinyin varchar(30)," +
+            "country varchar(15)," +
+            "city varchar(15)," +
+            "province varchar(15))";
+
     public AlarmDBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
     }
 
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_ALARM);
+        db.execSQL(CREATE_LOCATION);
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {

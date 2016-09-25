@@ -23,7 +23,6 @@ import java.util.ArrayList;
  */
 public class SelectAlarmMusicActivity extends AppCompatActivity {
     public static final String ERRTAG = "SelectMusicActivity";
-    public static final String path = "Alarm";
     private static final String[] keywords = {".mp3", ".wma", ".ogg"};
 
     private ArrayList<String> MusicList = null;
